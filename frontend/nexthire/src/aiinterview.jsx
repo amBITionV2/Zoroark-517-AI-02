@@ -13,9 +13,30 @@ const AIInterviewDashboard = () => {
   const [isListening, setIsListening] = useState(false);
   const [lastAnswer, setLastAnswer] = useState("");
   const [interviewEnded, setInterviewEnded] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
   
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const audioRef = useRef(null);
+  const recordingTimerRef = useRef(null);
+  const abortControllerRef = useRef(null);
+
+  // Function to play audio from base64
+  const playAudio = (base64Audio) => {
+    if (!base64Audio) return Promise.resolve();
+    
+    const audio = new Audio(`data:audio/mpeg;base64,${base64Audio}`);
+    audioRef.current = audio;
+    
+    return new Promise((resolve, reject) => {
+      audio.onended = resolve;
+      audio.onerror = reject;
+      audio.play().catch(err => {
+        console.error("Error playing audio:", err);
+        reject(err);
+      });
+    });
+  };
 
   // Timer effect
   useEffect(() => {
@@ -58,6 +79,15 @@ const AIInterviewDashboard = () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     };
   }, []);
 
@@ -70,6 +100,9 @@ const AIInterviewDashboard = () => {
   const handleEndInterview = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
     }
     setInterviewEnded(true);
     setAiStatus("Interview completed");
@@ -117,14 +150,24 @@ const AIInterviewDashboard = () => {
       setQuestionNumber(data.question_number);
       setAiStatus("AI is speaking...");
       
-      // Simulate speaking delay (the backend handles actual TTS)
-      setTimeout(() => {
-        setAiStatus("Ready for your answer");
-      }, 3000);
+      // Play audio if available
+      if (data.audio) {
+        try {
+          await playAudio(data.audio);
+        } catch (audioErr) {
+          console.error("Audio playback error:", audioErr);
+        }
+      } else {
+        // Fallback delay if no audio
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+      
+      setAiStatus("Ready for your answer");
       
     } catch (err) {
       console.error("Error starting interview:", err);
       setAiStatus("Error connecting to AI. Please try again.");
+      setInterviewStarted(false);
       alert("Failed to start interview. Make sure the backend server is running at http://127.0.0.1:8000");
     }
   };
@@ -141,11 +184,21 @@ const AIInterviewDashboard = () => {
     setIsListening(true);
     setAiStatus("Listening to your answer...");
     setLastAnswer("");
+    setRecordingTime(0);
+
+    // Start recording timer
+    recordingTimerRef.current = setInterval(() => {
+      setRecordingTime(prev => prev + 1);
+    }, 1000);
+
+    // Create abort controller for this request
+    abortControllerRef.current = new AbortController();
 
     try {
       const res = await fetch(`${BACKEND_URL}/ai/listen`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: abortControllerRef.current.signal
       });
       
       if (!res.ok) {
@@ -154,25 +207,71 @@ const AIInterviewDashboard = () => {
       
       const data = await res.json();
       
+      // Clear recording timer
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        setRecordingTime(0);
+      }
+      
       setLastAnswer(data.candidate_answer);
       setCurrentQuestion(data.ai_response);
       setQuestionNumber(data.question_number);
       setAiStatus("AI is speaking...");
       
-      // Simulate speaking delay
-      setTimeout(() => {
-        if (data.interview_end) {
-          handleEndInterview();
-        } else {
-          setAiStatus("Ready for your answer");
+      // Play audio if available
+      if (data.audio) {
+        try {
+          await playAudio(data.audio);
+        } catch (audioErr) {
+          console.error("Audio playback error:", audioErr);
         }
-      }, 3000);
+      } else {
+        // Fallback delay if no audio
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+      
+      if (data.interview_end) {
+        handleEndInterview();
+      } else {
+        setAiStatus("Ready for your answer");
+      }
       
     } catch (err) {
-      console.error("Error capturing answer:", err);
-      setAiStatus("Error processing answer. Please try again.");
+      if (err.name === 'AbortError') {
+        console.log("Recording stopped by user");
+      } else {
+        console.error("Error capturing answer:", err);
+        setAiStatus("Error processing answer. Please try again.");
+      }
+      
+      // Clear recording timer
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        setRecordingTime(0);
+      }
     } finally {
       setIsListening(false);
+    }
+  };
+
+  // Stop recording early
+  const stopRecording = async () => {
+    try {
+      // Call backend to stop recording
+      await fetch(`${BACKEND_URL}/ai/stop-recording`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      console.log("Stop recording signal sent to backend");
+    } catch (err) {
+      console.error("Error stopping recording:", err);
+    }
+    
+    // Clean up frontend timers
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      setRecordingTime(0);
     }
   };
 
@@ -292,27 +391,46 @@ const AIInterviewDashboard = () => {
                 </button>
               ) : (
                 <>
-                  <button
-                    onClick={speakAnswer}
-                    disabled={isListening || interviewEnded || !micActive}
-                    className={`flex-1 ${isListening || interviewEnded || !micActive ? 'bg-gray-600 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-500'} px-4 py-3 rounded-lg font-semibold transition`}
-                  >
-                    {isListening ? '🎤 Listening...' : '🎤 Speak Answer'}
-                  </button>
-                  <button
-                    onClick={toggleMic}
-                    disabled={interviewEnded}
-                    className={`flex-1 ${interviewEnded ? 'bg-gray-600' : micActive ? 'bg-yellow-600 hover:bg-yellow-500' : 'bg-gray-600 hover:bg-gray-500'} px-4 py-3 rounded-lg font-semibold transition`}
-                  >
-                    {micActive ? '🔊 Mute' : '🔇 Unmute'}
-                  </button>
-                  <button
-                    onClick={handleEndInterview}
-                    disabled={interviewEnded}
-                    className={`flex-1 ${interviewEnded ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-500'} px-4 py-3 rounded-lg font-semibold transition`}
-                  >
-                    ⏹ End
-                  </button>
+                  {!isListening ? (
+                    <>
+                      <button
+                        onClick={speakAnswer}
+                        disabled={interviewEnded || !micActive}
+                        className={`flex-1 ${interviewEnded || !micActive ? 'bg-gray-600 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-500'} px-4 py-3 rounded-lg font-semibold transition`}
+                      >
+                        🎤 Speak Answer
+                      </button>
+                      <button
+                        onClick={toggleMic}
+                        disabled={interviewEnded}
+                        className={`flex-1 ${interviewEnded ? 'bg-gray-600' : micActive ? 'bg-yellow-600 hover:bg-yellow-500' : 'bg-gray-600 hover:bg-gray-500'} px-4 py-3 rounded-lg font-semibold transition`}
+                      >
+                        {micActive ? '🔊 Mute' : '🔇 Unmute'}
+                      </button>
+                      <button
+                        onClick={handleEndInterview}
+                        disabled={interviewEnded}
+                        className={`flex-1 ${interviewEnded ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-500'} px-4 py-3 rounded-lg font-semibold transition`}
+                      >
+                        ⏹ End
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        disabled
+                        className="flex-1 bg-gray-600 cursor-not-allowed px-4 py-3 rounded-lg font-semibold"
+                      >
+                        🎤 Recording... {recordingTime}s
+                      </button>
+                      <button
+                        onClick={stopRecording}
+                        className="flex-1 bg-orange-600 hover:bg-orange-500 px-4 py-3 rounded-lg font-semibold transition"
+                      >
+                        ⏹ Stop Recording
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </div>

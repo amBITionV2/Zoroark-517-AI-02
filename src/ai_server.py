@@ -3,9 +3,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from interview_flow import get_ai_response, set_resume_context
-from stt_service import listen_and_transcribe
+from stt_service import listen_and_transcribe, stop_recording, is_recording
 from conclusion_checker import check_conclusion
-from tts_service import speak_text
+from tts_service import speak_text, get_audio_base64
 
 # Initialize FastAPI
 app = FastAPI()
@@ -58,13 +58,15 @@ def start_interview(req: StartRequest):
         # Get first question from AI
         question = get_ai_response("start_interview", interview_state['question_number'])
         
-        # Speak the question via TTS
-        speak_text(question)
+        # Generate speech audio
+        audio_file = speak_text(question)
+        audio_base64 = get_audio_base64(audio_file) if audio_file else None
         
         return {
             "question": question,
             "question_number": interview_state['question_number'],
-            "status": "success"
+            "status": "success",
+            "audio": audio_base64
         }
     
     except Exception as e:
@@ -101,9 +103,10 @@ def listen_and_respond():
         ai_response = get_ai_response(candidate_answer, interview_state['question_number'])
         print(f"AI response: {ai_response}")
         
-        # Step 4: Speak the AI response via TTS
-        print("Speaking AI response...")
-        speak_text(ai_response)
+        # Step 4: Generate speech audio
+        print("Generating speech...")
+        audio_file = speak_text(ai_response)
+        audio_base64 = get_audio_base64(audio_file) if audio_file else None
         
         # Step 5: Check if interview should conclude
         interview_end = check_conclusion(ai_response)
@@ -116,7 +119,8 @@ def listen_and_respond():
             "candidate_answer": candidate_answer,
             "ai_response": ai_response,
             "interview_end": interview_end,
-            "question_number": interview_state['question_number']
+            "question_number": interview_state['question_number'],
+            "audio": audio_base64
         }
     
     except Exception as e:
@@ -148,4 +152,4 @@ if __name__ == "__main__":
     print("Starting AI Interview Backend Server...")
     print("Server will run on http://127.0.0.1:8000")
     print("Make sure your STT and TTS services are properly configured!")
-    uvicorn.run(app, host="127.0.0.1", port=8000)  # Change from 5000 to 8000
+    uvicorn.run(app, host="127.0.0.1", port=8000)
