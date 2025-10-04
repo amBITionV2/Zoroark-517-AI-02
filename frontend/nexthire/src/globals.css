@@ -1,0 +1,266 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Color Variables - Option 5: Midnight & Electric (Enhanced Backgrounds) */
+:root {
+  --color-bg-primary: #0A0E27;    /* Midnight */
+  --color-bg-secondary: #161B33;  /* Dark Navy */
+  --color-bg-card: #1E2749;       /* Lighter card background for depth */
+  --color-tertiary: #6366F1;      /* Indigo */
+  --color-accent: #22D3EE;        /* Cyan */
+  --color-text-primary: #F8FAFC;  /* Almost White */
+  --color-text-secondary: rgba(248, 250, 252, 0.75);
+  --color-text-muted: #94A3B8;
+  --color-glow: rgba(99, 102, 241, 0.15); /* Subtle glow effect */
+}
+
+/* Background Colors with Gradient Enhancement */
+.job-listing-bg {
+  background: linear-gradient(135deg, var(--color-bg-primary) 0%, #0D1229 50%, var(--color-bg-secondary) 100%);
+  min-height: 100vh;
+}
+
+.sidebar-bg {
+  background: linear-gradient(180deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
+  border-right: 1px solid rgba(99, 102, 241, 0.1);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Text Colors */
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  background: linear-gradient(135deg, var(--color-bg-secondary) 0%, #1E2749 100%);
+  color: var(--color-text-primary);
+  transition: all 0.3s ease-in-out;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.mobile-menu-btn:hover {
+  background: linear-gradient(135deg, var(--color-tertiary) 0%, #7C3AED 100%);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Navigation Links */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease-in-out;
+  color: var(--color-text-primary);
+  position: relative;
+}
+
+.nav-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: var(--color-accent);
+  border-radius: 0 2px 2px 0;
+  transition: height 0.3s ease-in-out;
+}
+
+.nav-link:hover {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--color-accent);
+  padding-left: 1.25rem;
+}
+
+.nav-link:hover::before {
+  height: 70%;
+}
+
+.nav-link-active {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, rgba(34, 211, 238, 0.1) 100%);
+  color: var(--color-accent);
+  padding-left: 1.25rem;
+  border-left: 3px solid var(--color-accent);
+}
+
+/* Job Card with Enhanced Aesthetics */
+.job-card {
+  background: linear-gradient(135deg, var(--color-bg-card) 0%, var(--color-bg-secondary) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.job-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-tertiary) 0%, var(--color-accent) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.job-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.2), 0 0 40px var(--color-glow);
+  border-color: var(--color-tertiary);
+}
+
+.job-card:hover::before {
+  opacity: 1;
+}
+
+/* Bookmark Button */
+.bookmark-btn {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  background-color: rgba(99, 102, 241, 0.1);
+  color: var(--color-text-secondary);
+  border: 1px solid transparent;
+}
+
+.bookmark-btn:hover {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  transform: scale(1.1);
+}
+
+.bookmark-btn.bookmarked {
+  background: linear-gradient(135deg, var(--color-tertiary) 0%, var(--color-accent) 100%);
+  color: var(--color-text-primary);
+  box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+}
+
+/* Job Details */
+.job-detail {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.detail-icon {
+  color: var(--color-accent);
+}
+
+/* Skill Tags - KEEPING ORIGINAL BUTTON COLORS */
+.skill-tag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--color-accent);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  transition: all 0.2s ease-in-out;
+}
+
+.skill-tag:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(34, 211, 238, 0.2) 100%);
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(34, 211, 238, 0.2);
+}
+
+/* Apply Button - KEEPING VIBRANT COLORS */
+.apply-btn {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out;
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-tertiary) 100%);
+  color: var(--color-bg-primary);
+  border: none;
+  box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.apply-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease-in-out;
+}
+
+.apply-btn:hover {
+  background: linear-gradient(135deg, var(--color-tertiary) 0%, #7C3AED 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5), 0 0 30px rgba(34, 211, 238, 0.3);
+}
+
+.apply-btn:hover::before {
+  left: 100%;
+}
+
+.apply-btn:active {
+  transform: translateY(-1px);
+}
+
+/* Line Clamp Utility */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Enhanced Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
+  border-left: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--color-tertiary) 0%, var(--color-accent) 100%);
+  border-radius: 5px;
+  border: 2px solid var(--color-bg-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--color-accent) 0%, var(--color-tertiary) 100%);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+}
+
+/* Additional Aesthetic Enhancements */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.shimmer-effect {
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+  background-size: 1000px 100%;
+  animation: shimmer 3s infinite;
+}

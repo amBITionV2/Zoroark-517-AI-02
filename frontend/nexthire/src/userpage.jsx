@@ -72,16 +72,16 @@ const UserPage = () => {
                 <p><strong>Email:</strong> {user.email}</p>
                 <p><strong>Mobile:</strong> {user.mobile}</p>
                 <p><strong>Gender:</strong> {user.gender}</p>
-                {/* <p><strong>Qualification:</strong> {user.qualification}</p> */}
+                <p><strong>Qualification:</strong> {user.qualification}</p>
                 <p><strong>Experience:</strong> {user.experience}</p>
-                {/* <p><strong>Skills:</strong> {user.skills?.join(", ")}</p> */}
+                <p><strong>Skills:</strong> {user.skills?.join(", ")}</p>
                 <p>
                   <strong>Portfolio:</strong>{" "}
                   <a href={user.portfolio} target="_blank" className="text-blue-400 hover:underline">
                     {user.portfolio}
                   </a>
                 </p>
-                {/* <p><strong>About:</strong> {user.about}</p> */}
+                <p><strong>About:</strong> {user.about}</p>
               </div>
 
               <button
@@ -117,7 +117,9 @@ const UserPage = () => {
           </div>
 
           {/* View Jobs */}
-          <div className="bg-gray-800 rounded-2xl p-6 hover:bg-gray-700 transition shadow-lg cursor-pointer">
+          <div className="bg-gray-800 rounded-2xl p-6 hover:bg-gray-700 transition shadow-lg cursor-pointer"
+            onClick={() => navigate("/jobs")}
+          >
             <div className="flex items-center justify-center mb-4">
               <FaBriefcase size={32} className="text-blue-400" />
             </div>
@@ -147,6 +149,16 @@ const UserPage = () => {
             <p><strong>Portfolio:</strong> <a href={user.portfolio} target="_blank" className="text-blue-400 hover:underline">{user.portfolio}</a></p>
             <p><strong>Skills:</strong> {user.skills?.join(", ")}</p>
           </div>
+          
+          {/* Display resume text if available */}
+          {user.resumeText && (
+            <div className="mt-6">
+              <h4 className="text-xl font-bold mb-2">Extracted Resume Text</h4>
+              <div className="bg-gray-900 p-4 rounded-lg max-h-60 overflow-y-auto">
+                <pre className="text-gray-300 whitespace-pre-wrap">{user.resumeText}</pre>
+              </div>
+            </div>
+          )}
         </section>
       </main>
     </div>
