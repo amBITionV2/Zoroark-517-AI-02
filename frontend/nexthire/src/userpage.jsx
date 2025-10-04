@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaUserCircle, FaChevronDown, FaUser, FaBriefcase, FaClipboardList } from "react-icons/fa";
+import ResumeUpload from "../componets/ResumeUpload";
 
 const UserPage = () => {
   const navigate = useNavigate();
@@ -30,6 +31,17 @@ const UserPage = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
+  };
+
+  const handleResumeUploadSuccess = (resumeText) => {
+    // Update user state with resume text
+    setUser(prevUser => ({
+      ...prevUser,
+      resumeText: resumeText
+    }));
+    
+    // Show success message or update UI as needed
+    console.log("Resume text extracted and saved:", resumeText);
   };
 
   if (!user) {
@@ -105,6 +117,11 @@ const UserPage = () => {
           </p>
         </section>
 
+        {/* Resume Upload Section */}
+        <section className="mb-12">
+          <ResumeUpload onUploadSuccess={handleResumeUploadSuccess} />
+        </section>
+
         {/* 3 Main Options */}
         <section className="grid md:grid-cols-3 gap-8 mb-16">
           {/* Manage Profile */}
@@ -147,6 +164,16 @@ const UserPage = () => {
             <p><strong>Portfolio:</strong> <a href={user.portfolio} target="_blank" className="text-blue-400 hover:underline">{user.portfolio}</a></p>
             <p><strong>Skills:</strong> {user.skills?.join(", ")}</p>
           </div>
+          
+          {/* Display resume text if available */}
+          {user.resumeText && (
+            <div className="mt-6">
+              <h4 className="text-xl font-bold mb-2">Extracted Resume Text</h4>
+              <div className="bg-gray-900 p-4 rounded-lg max-h-60 overflow-y-auto">
+                <pre className="text-gray-300 whitespace-pre-wrap">{user.resumeText}</pre>
+              </div>
+            </div>
+          )}
         </section>
       </main>
     </div>

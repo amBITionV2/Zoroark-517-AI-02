@@ -1,6 +1,7 @@
 import User from "../modules/usermodule.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import Admin from "../modules/adminmodule.js";
 
 // SIGNUP
 export const signup = async (req, res) => {
@@ -96,3 +97,86 @@ export const login = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+// User applies for a job
+export const applyForJob = async (req, res) => {
+  try {
+    const { adminId } = req.params;          // Admin ID from URL
+    const userId = req.user._id;             // User ID from token
+
+    // Find admin
+    const admin = await Admin.findById(adminId);
+    if (!admin) return res.status(404).json({ message: "Admin not found" });
+
+    // Check if user already applied
+    if (admin.appliedUsers.includes(userId)) {
+      return res.status(400).json({ message: "User already applied" });
+    }
+
+    // Add user to admin's appliedUsers
+    admin.appliedUsers.push(userId);
+    await admin.save();
+
+    // Optional: Add job info to user's appliedJobs
+    const job = admin.jobsPosted[0]; // replace with logic to get specific job if needed
+    const user = await User.findById(userId);
+    user.appliedJobs.push({
+      jobId: job._id,
+      adminId: admin._id,
+      role: job.role,
+      companyName: admin.companyName,
+    });
+    await user.save();
+
+    res.status(200).json({ message: "Application submitted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Get all jobs posted by all admins
+export const getAllJobs = async (req, res) => {
+  try {
+    // Fetch all admins and their jobs
+    const admins = await Admin.find({}, "companyName jobsPosted");
+
+    // Combine all jobs with company info
+    let jobs = [];
+    admins.forEach((admin) => {
+      admin.jobsPosted.forEach((job) => {
+        jobs.push({
+          adminId: admin._id,
+          companyName: admin.companyName,
+          jobId: job._id,
+          role: job.role,
+          jobDescription: job.jobDescription,
+          salary: job.salary,
+          location: job.location,
+          experienceRequired: job.experienceRequired,
+          skillsRequired: job.skillsRequired,
+          jobType: job.jobType,
+          applicationDeadline: job.applicationDeadline,
+        });
+      });
+    });
+
+    res.status(200).json({ success: true, jobs });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+// Get all jobs applied by the user
+export const getAppliedJobs = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId).populate("appliedJobs.adminId", "companyName");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json({ success: true, appliedJobs: user.appliedJobs });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
