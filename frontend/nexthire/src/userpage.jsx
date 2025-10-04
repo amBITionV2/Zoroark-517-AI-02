@@ -117,7 +117,9 @@ const UserPage = () => {
           </div>
 
           {/* View Jobs */}
-          <div className="bg-gray-800 rounded-2xl p-6 hover:bg-gray-700 transition shadow-lg cursor-pointer">
+          <div className="bg-gray-800 rounded-2xl p-6 hover:bg-gray-700 transition shadow-lg cursor-pointer"
+            onClick={() => navigate("/jobs")}
+          >
             <div className="flex items-center justify-center mb-4">
               <FaBriefcase size={32} className="text-blue-400" />
             </div>

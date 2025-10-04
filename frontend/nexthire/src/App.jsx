@@ -4,6 +4,7 @@ import "react-toastify/dist/ReactToastify.css";
 import LandingPage from "./landingpage";
 import UserAuth from "../componets/login";
 import UserPage from "./userpage";   // Import the UserPage component
+import Joblist from "./joblist";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/user" element={<UserAuth />} />
         <Route path="/dashboard" element={<UserPage />} />
+        <Route path="/jobs" element={<Joblist />} />
       </Routes>
       <ToastContainer
         position="top-right"
