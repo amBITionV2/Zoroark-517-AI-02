@@ -15,6 +15,19 @@ import {
   FiLogOut,
   FiHome,
 } from "react-icons/fi"
+import {
+  FaHome,
+  FaBriefcase,
+  FaClipboardList,
+  FaUser,
+  FaBars,
+  FaTimes,
+  FaChevronDown,
+  FaChevronUp,
+  FaArrowRight,
+  FaSearch,
+  FaSignOutAlt,
+} from "react-icons/fa"
 import "./styles/joblistPage.css"
 import accountLogo from "./assets/account-logo.svg"
 import jobLogo from "./assets/job-logo.svg"
@@ -110,61 +123,44 @@ export default function Joblist() {
           md:translate-x-0 w-64 sidebar
         `}
       >
-        <div className="sidebar-content">
-          {/* User Profile */}
-          <div className="user-section">
-            <div className="flex flex-col items-center gap-3 mb-6">
-              <img src={accountLogo} alt="User" className="user-avatar" />
-              <div>
-                <h3 className="user-name">John Doe</h3>
-                <p className="text-sm text-secondary">Job Seeker</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="nav-links">
-            <ul className="space-y-2">
-              <li>
-                <button onClick={() => handleNavigation('/jobs')} className="nav-link nav-link-active">
-                  <FiBriefcase size={20} />
-                  <span>Jobs</span>
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavigation('/dashboard')} className="nav-link">
-                  <FiHome size={20} />
-                  <span>Dashboard</span>
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavigation('/applications')} className="nav-link">
-                  <FiBookmark size={20} />
-                  <span>Applied Jobs</span>
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavigation('/profile')} className="nav-link">
-                  <FiUser size={20} />
-                  <span>Profile</span>
-                </button>
-              </li>
-              <li>
-                
-              </li>
-            </ul>
-          </nav>
-
-          {/* Logout */}
-          <button 
-            onClick={handleLogout}
-            className="logout-btn w-full mt-auto"
-          >
-            <FiLogOut size={20} />
-            <span>Logout</span>
-          </button>
-        </div>
-      </aside>
+        <div className="flex flex-col h-full p-6">
+                          {/* User Profile */}
+                          <div className="mb-8">
+                            <div className="flex flex-col items-center gap-3 mb-6">
+                              <img
+                                src={accountLogo}
+                                alt="User"
+                                className="w-16 h-16 rounded-full"
+                              />
+                              <div className="text-center">
+                                <h3 className="font-semibold text-primary">John Doe</h3>
+                                <p className="text-sm text-secondary">Job Seeker</p>
+                              </div>
+                            </div>
+                          </div>    
+        
+                  <nav className="nav-links">
+                    <a className="nav-link" onClick={() => handleNavigation('/dashboard')}>
+                      <FaHome /> Dashboard
+                    </a>
+                    <a className="nav-link active" onClick={() => handleNavigation('/jobs')}>
+                      <FaBriefcase /> Jobs
+                    </a>
+                    <a className="nav-link " onClick={() => handleNavigation('/applications')}>
+                      <FaClipboardList /> Applications
+                    </a>
+                    <a className="nav-link" onClick={() => handleNavigation('/profile')}>
+                      <FaUser /> Profile
+                    </a>
+                  </nav>
+        
+                  <button 
+                    onClick={handleLogout}
+                  className="logout-btn">
+                    <FaSignOutAlt /> Logout
+                  </button>
+                </div>
+              </aside>
 
       {/* Overlay for mobile */}
       {isSidebarOpen && (
