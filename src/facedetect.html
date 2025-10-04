@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Person Detection with COCO-SSD</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.2.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+  <style>
+    #container {
+      position: relative;
+      width: 640px;
+      height: 480px;
+    }
+    video, canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 640px;
+      height: 480px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    #count {
+      margin-top: 10px;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>Person Detection (COCO-SSD)</h2>
+  <div id="container">
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="canvas"></canvas>
+  </div>
+  <div id="count">People detected: 0</div>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const countDisplay = document.getElementById('count');
+
+    async function setupCamera() {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480 },
+        audio: false,
+      });
+      video.srcObject = stream;
+      return new Promise(resolve => {
+        video.onloadedmetadata = () => {
+          resolve();
+        };
+      });
+    }
+
+    async function loadAndDetect() {
+      await setupCamera();
+      video.play();
+      const model = await cocoSsd.load();
+      console.log('✅ COCO-SSD model loaded');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      async function detectFrame() {
+        const predictions = await model.detect(video);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const persons = predictions.filter(p => p.class === 'person' && p.score > 0.5);
+        persons.forEach(person => {
+          const [x, y, width, height] = person.bbox;
+
+          ctx.strokeStyle = '#00FF00';
+          ctx.lineWidth = 2;
+          ctx.font = '18px Arial';
+          ctx.fillStyle = '#00FF00';
+
+          ctx.beginPath();
+          ctx.rect(x, y, width, height);
+          ctx.stroke();
+
+          ctx.fillText(
+            `Person ${(person.score * 100).toFixed(1)}%`,
+            x,
+            y > 20 ? y - 5 : y + 20
+          );
+        });
+        countDisplay.textContent = `People detected: ${persons.length}`;
+        requestAnimationFrame(detectFrame);
+      }
+
+      detectFrame();
+    }
+
+    loadAndDetect().catch(err => {
+      console.error('Error:', err);
+      alert('Could not start person detection.');
+    });
+  </script>
+</body>
+</html>
