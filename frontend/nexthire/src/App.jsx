@@ -4,6 +4,11 @@ import "react-toastify/dist/ReactToastify.css";
 import LandingPage from "./landingpage";
 import UserAuth from "../componets/login";
 import UserPage from "./userpage";   // Import the UserPage component
+import Joblist from "./joblist";
+import JobApplicationRules from "./jobapplicationrules";
+import InterviewPage from "./interviewpage";
+import MCQQuiz from "./mcqquiz.jsx";
+import AIInterviewDashboard from "./aiinterview"; // Import the AI Interview Dashboard
 
 function App() {
   return (
@@ -12,6 +17,11 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/user" element={<UserAuth />} />
         <Route path="/dashboard" element={<UserPage />} />
+        <Route path="/jobs" element={<Joblist />} />
+        <Route path="/jobs/rules" element={<JobApplicationRules />} />
+        <Route path="/jobs/interview" element={<InterviewPage />} />
+        <Route path="/jobs/mcq" element={<MCQQuiz />} />
+        <Route path="/jobs/ai-interview" element={<AIInterviewDashboard />} /> {/* Add AI Interview route */}
       </Routes>
       <ToastContainer
         position="top-right"

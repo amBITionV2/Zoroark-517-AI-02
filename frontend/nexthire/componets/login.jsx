@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { authAPI } from "../src/services/api"; // Import the API service
-import { getFileData } from "../src/utils/fileUtils"; // Import file utilities
 
 const UserAuth = () => {
   const navigate = useNavigate();
@@ -21,7 +20,7 @@ const UserAuth = () => {
     about: "",
     newPassword: "",
     confirmPassword: "",
-    resume: "",
+    resume: null,
   });
   const [skillInput, setSkillInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -68,7 +67,7 @@ const UserAuth = () => {
         
         const credentials = {
           email: formData.email,
-          password: formData.newPassword
+          password: formData.newPassword  // Fixed: backend expects "password"
         };
         
         const result = await authAPI.login(credentials);
@@ -98,16 +97,27 @@ const UserAuth = () => {
       try {
         setLoading(true);
         
-        // Prepare data for signup (excluding confirm password)
-        const { confirmPassword, resume, ...signupData } = formData;
+        // Create FormData object to handle file upload
+        const formDataToSend = new FormData();
         
-        // For now, we'll send all data as JSON (resume info only)
-        // In a real app, you would handle file uploads separately
-        if (resume) {
-          signupData.resume = getFileData(resume);
+        // Append all text fields
+        Object.keys(formData).forEach(key => {
+          if (key !== 'resume' && key !== 'confirmPassword') {
+            if (key === 'skills') {
+              // Send skills as JSON string
+              formDataToSend.append(key, JSON.stringify(formData[key]));
+            } else {
+              formDataToSend.append(key, formData[key]);
+            }
+          }
+        });
+        
+        // Append resume file if exists
+        if (formData.resume) {
+          formDataToSend.append('resume', formData.resume);
         }
         
-        const result = await authAPI.signup(signupData);
+        const result = await authAPI.signupWithResume(formDataToSend);
         toast.success("Registration successful!");
         console.log("Signup result:", result);
         
@@ -312,13 +322,13 @@ const UserAuth = () => {
                   required
                 />
                 <div className="space-y-2">
-                  <label className="text-gray-300">Upload Resume</label>
+                  <label className="text-gray-300">Upload Resume (PDF only)</label>
                   <input
                     type="file"
                     name="resume"
+                    accept=".pdf"
                     onChange={handleChange}
                     className="w-full text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700"
-                    required
                   />
                   {formData.resume && (
                     <p className="text-sm text-gray-400">

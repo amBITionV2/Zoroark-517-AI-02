@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaUserCircle, FaChevronDown, FaUser, FaBriefcase, FaClipboardList } from "react-icons/fa";
-import ResumeUpload from "../componets/ResumeUpload";
 
 const UserPage = () => {
   const navigate = useNavigate();
@@ -31,17 +30,6 @@ const UserPage = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
-  };
-
-  const handleResumeUploadSuccess = (resumeText) => {
-    // Update user state with resume text
-    setUser(prevUser => ({
-      ...prevUser,
-      resumeText: resumeText
-    }));
-    
-    // Show success message or update UI as needed
-    console.log("Resume text extracted and saved:", resumeText);
   };
 
   if (!user) {
@@ -84,16 +72,16 @@ const UserPage = () => {
                 <p><strong>Email:</strong> {user.email}</p>
                 <p><strong>Mobile:</strong> {user.mobile}</p>
                 <p><strong>Gender:</strong> {user.gender}</p>
-                {/* <p><strong>Qualification:</strong> {user.qualification}</p> */}
+                <p><strong>Qualification:</strong> {user.qualification}</p>
                 <p><strong>Experience:</strong> {user.experience}</p>
-                {/* <p><strong>Skills:</strong> {user.skills?.join(", ")}</p> */}
+                <p><strong>Skills:</strong> {user.skills?.join(", ")}</p>
                 <p>
                   <strong>Portfolio:</strong>{" "}
                   <a href={user.portfolio} target="_blank" className="text-blue-400 hover:underline">
                     {user.portfolio}
                   </a>
                 </p>
-                {/* <p><strong>About:</strong> {user.about}</p> */}
+                <p><strong>About:</strong> {user.about}</p>
               </div>
 
               <button
@@ -117,11 +105,6 @@ const UserPage = () => {
           </p>
         </section>
 
-        {/* Resume Upload Section */}
-        <section className="mb-12">
-          <ResumeUpload onUploadSuccess={handleResumeUploadSuccess} />
-        </section>
-
         {/* 3 Main Options */}
         <section className="grid md:grid-cols-3 gap-8 mb-16">
           {/* Manage Profile */}
@@ -134,7 +117,9 @@ const UserPage = () => {
           </div>
 
           {/* View Jobs */}
-          <div className="bg-gray-800 rounded-2xl p-6 hover:bg-gray-700 transition shadow-lg cursor-pointer">
+          <div className="bg-gray-800 rounded-2xl p-6 hover:bg-gray-700 transition shadow-lg cursor-pointer"
+            onClick={() => navigate("/jobs")}
+          >
             <div className="flex items-center justify-center mb-4">
               <FaBriefcase size={32} className="text-blue-400" />
             </div>

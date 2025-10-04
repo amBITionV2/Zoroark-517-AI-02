@@ -2,10 +2,31 @@ import User from "../modules/usermodule.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Admin from "../modules/adminmodule.js";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const pdfParse = require("pdf-parse");
 
 // SIGNUP
 export const signup = async (req, res) => {
   try {
+    // Handle both JSON and multipart/form-data requests
+    let userData;
+    let resumeFile = null;
+    
+    if (req.file) {
+      // Multipart/form-data request (with file)
+      userData = req.body;
+      resumeFile = req.file;
+      
+      // Parse skills if it's a string
+      if (typeof userData.skills === 'string') {
+        userData.skills = JSON.parse(userData.skills);
+      }
+    } else {
+      // JSON request (without file)
+      userData = req.body;
+    }
+
     const {
       fullName,
       email,
@@ -18,9 +39,8 @@ export const signup = async (req, res) => {
       portfolio,
       about,
       newPassword,
-      confirmPassword,
-      resume
-    } = req.body;
+      confirmPassword
+    } = userData;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -49,9 +69,29 @@ export const signup = async (req, res) => {
       portfolio,
       about,
       newPassword: hashedPassword,
-      confirmPassword: hashedPassword, // optional, stored hashed
-      resume
+      confirmPassword: hashedPassword,
     });
+
+    // Handle resume upload if provided
+    if (resumeFile) {
+      try {
+        // Extract text from PDF
+        const dataBuffer = resumeFile.buffer;
+        const pdfData = await pdfParse(dataBuffer);
+        
+        // Save file + extracted text in DB
+        user.resume = {
+          data: dataBuffer,
+          contentType: resumeFile.mimetype,
+          fileName: resumeFile.originalname,
+          size: resumeFile.size,
+        };
+        user.resumeText = pdfData.text;
+      } catch (parseError) {
+        console.error("Error parsing PDF:", parseError);
+        // Continue with registration even if PDF parsing fails
+      }
+    }
 
     await user.save();
     res.status(201).json({ message: "User registered successfully" });
@@ -179,4 +219,3 @@ export const getAppliedJobs = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
