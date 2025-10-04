@@ -5,6 +5,10 @@ import LandingPage from "./landingpage";
 import UserAuth from "../componets/login";
 import UserPage from "./userpage";   // Import the UserPage component
 import Joblist from "./joblist";
+import Applications from "./applications";
+import Profile from "./profile";
+import AdminSignupForm from "../componets/adminsignup";
+
 
 function App() {
   return (
@@ -12,8 +16,11 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/user" element={<UserAuth />} />
+        <Route path="/adminSignup" element={<AdminSignupForm />} />
         <Route path="/dashboard" element={<UserPage />} />
         <Route path="/jobs" element={<Joblist />} />
+        <Route path="/applications" element={<Applications />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
       <ToastContainer
         position="top-right"

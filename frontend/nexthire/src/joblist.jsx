@@ -1,6 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import {
   FiMenu,
   FiX,
@@ -10,13 +11,14 @@ import {
   FiClock,
   FiDollarSign,
   FiUser,
-  FiSettings,
   FiLogOut,
   FiHome,
-} from "react-icons/fi"
-import "./globals.css"
-import accountLogo from "./assets/account-logo.svg"
-import jobLogo from "./assets/job-logo.svg"
+} from "react-icons/fi";
+import { FaHome, FaBriefcase, FaClipboardList, FaUser as FaUserSolid, FaBars, FaTimes, FaSignOutAlt } from "react-icons/fa";
+import "./styles/joblistPage.css";
+import accountLogo from "./assets/account-logo.svg";
+import jobLogo from "./assets/job-logo.svg";
+
 // Mock job data
 const jobListings = [
   {
@@ -136,172 +138,196 @@ const jobListings = [
       "Build robust and scalable backend systems for financial applications. Ensure high performance and security standards.",
     skills: ["Node.js", "PostgreSQL", "Microservices", "Redis"],
   },
-]
+];
 
 export default function Joblist() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [bookmarkedJobs, setBookmarkedJobs] = useState(new Set())
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [bookmarkedJobs, setBookmarkedJobs] = useState(new Set());
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile && isSidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [isMobile, isSidebarOpen]);
 
   const toggleBookmark = (jobId) => {
     setBookmarkedJobs((prev) => {
-      const newSet = new Set(prev)
+      const newSet = new Set(prev);
       if (newSet.has(jobId)) {
-        newSet.delete(jobId)
+        newSet.delete(jobId);
       } else {
-        newSet.add(jobId)
+        newSet.add(jobId);
       }
-      return newSet
-    })
-  }
+      return newSet;
+    });
+  };
 
   return (
-    <div className="min-h-screen job-listing-bg">
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg transition-colors mobile-menu-btn"
-      >
-        {isSidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-      </button>
+    <div className="app">
+      {/* Backdrop */}
+      {isMobile && isSidebarOpen && <div className="backdrop" onClick={() => setIsSidebarOpen(false)} />}
 
       {/* Sidebar */}
-      <aside
-        className={`
-          fixed top-0 left-0 h-full z-40 transition-transform duration-300 ease-in-out
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          md:translate-x-0 w-64 sidebar-bg
-        `}
-      >
+      <aside className={`sidebar ${isMobile && isSidebarOpen ? "open" : ""}`}>
+        {isMobile && (
+          <button className="close-btn" onClick={() => setIsSidebarOpen(false)}>
+            <FaTimes />
+          </button>
+        )}
+
         <div className="flex flex-col h-full p-6">
           {/* User Profile */}
-          <div className="mb-8">
+          <div className="flex flex-col items-center gap-3 mb-6">
             <div className="flex flex-col items-center gap-3 mb-6">
-              <img src={accountLogo} alt="User" className="w-12 h-12 rounded-full" />
-              <div>
-                <h3 className="font-semibold text-primary">John Doe</h3>
-                <p className="text-sm text-secondary">Job Seeker</p>
-              </div>
-            </div>
+            <img
+              src={accountLogo}
+              alt="User"
+              className="w-16 h-16 rounded-full"
+            />
+            <div className="text-center">
+            <h3 className="font-semibold text-primary">John Doe</h3>
+            <p className="text-sm text-secondary">Job Seeker</p>
+          </div>
+          </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1">
-            <ul className="space-y-2">
-              <li>
-                <a href="#" className="nav-link nav-link-active">
-                  <FiBriefcase size={20} />
-                  <span>Jobs</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" className="nav-link">
-                  <FiHome size={20} />
-                  <span>Dashboard</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" className="nav-link">
-                  <FiBookmark size={20} />
-                  <span>applied Jobs</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" className="nav-link">
-                  <FiUser size={20} />
-                  <span>Profile</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" className="nav-link">
-                  <FiSettings size={20} />
-                  <span>Settings</span>
-                </a>
-              </li>
-            </ul>
+          <nav className="nav-links">
+            <a 
+              onClick={() => navigate("/dashboard")}
+              className="nav-link"
+            >
+              <FaHome /> Dashboard
+            </a>
+            <a onClick={() => navigate("/jobs")} className="nav-link active">
+              <FaBriefcase /> Jobs
+            </a>
+            <a 
+              onClick={() => navigate("/applications")}
+              className="nav-link"
+            >
+              <FaClipboardList /> Applications
+            </a>
+            <a onClick={() => navigate("/profile")} className="nav-link">
+              <FaUserSolid /> Profile
+            </a>
           </nav>
 
           {/* Logout */}
-          <button className="nav-link w-full mt-auto">
-            <FiLogOut size={20} />
-            <span>Logout</span>
+          <button className="logout-btn">
+            <FaSignOutAlt /> Logout
           </button>
         </div>
       </aside>
 
-      {/* Overlay for mobile */}
-      {isSidebarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden" onClick={() => setIsSidebarOpen(false)} />
-      )}
-
       {/* Main Content */}
-      <main className="md:ml-64 p-6 md:p-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-primary">Find Your Dream Job</h1>
-          <p className="text-lg text-secondary">Browse through {jobListings.length} available positions</p>
-        </div>
+      <main className="main-content">
+        {/* Mobile Header */}
+        {isMobile && (
+          <div className="mobile-header">
+            <button className="hamburger-btn" onClick={() => setIsSidebarOpen(true)}>
+              <FaBars />
+            </button>
+            <h2 className="mobile-title">nextHire</h2>
+            <img src={accountLogo} alt="User" className="mobile-avatar" />
+          </div>
+        )}
 
-        {/* Job Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {jobListings.map((job) => (
-            <div key={job.id} className="job-card">
-              {/* Company Logo and Bookmark */}
-              <div className="flex items-start justify-between mb-4">
-                <img
-                  src={jobLogo}
-                  alt={`${job.company} logo`}
-                  className="w-12 h-12 rounded-lg"
-                />
-                <button
-                  onClick={() => toggleBookmark(job.id)}
-                  className={`bookmark-btn ${bookmarkedJobs.has(job.id) ? "bookmarked" : ""}`}
-                >
-                  <FiBookmark size={20} fill={bookmarkedJobs.has(job.id) ? "#ECDFCC" : "none"} />
-                </button>
+        {/* Content Wrapper */}
+        <div className="content-wrapper">
+          {/* Header */}
+          <div className="page-header">
+            <h1 className="page-title">Find Your Dream Job</h1>
+            <p className="page-subtitle">Browse through {jobListings.length} available positions</p>
+          </div>
+
+          {/* Job Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {jobListings.map((job) => (
+              <div key={job.id} className="job-card">
+                {/* Company Logo and Bookmark */}
+                <div className="flex items-start justify-between mb-4">
+                  <img
+                    src={jobLogo}
+                    alt={`${job.company} logo`}
+                    className="w-12 h-12 rounded-lg"
+                  />
+                  <button
+                    onClick={() => toggleBookmark(job.id)}
+                    className={`bookmark-btn ${
+                      bookmarkedJobs.has(job.id) ? "bookmarked" : ""
+                    }`}
+                  >
+                    <FiBookmark
+                      fill={bookmarkedJobs.has(job.id) ? "#ECDFCC" : "none"}
+                    />
+                  </button>
+                </div>
+
+                {/* Job Title and Company */}
+                <h3 className="text-xl font-semibold mb-1 text-primary">
+                  {job.title}
+                </h3>
+                <p className="text-sm mb-4 text-secondary">{job.company}</p>
+
+                {/* Job Details */}
+                <div className="space-y-2 mb-4">
+                  <div className="job-detail">
+                    <FiMapPin size={16} className="detail-icon" />
+                    <span>{job.location}</span>
+                  </div>
+                  <div className="job-detail">
+                    <FiBriefcase size={16} className="detail-icon" />
+                    <span>{job.type}</span>
+                  </div>
+                  <div className="job-detail">
+                    <FiDollarSign size={16} className="detail-icon" />
+                    <span>{job.salary}</span>
+                  </div>
+                  <div className="job-detail">
+                    <FiClock size={16} className="detail-icon" />
+                    <span>{job.posted}</span>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <p className="text-sm mb-4 line-clamp-3 text-secondary">
+                  {job.description}
+                </p>
+
+                {/* Skills */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {job.skills.map((skill, index) => (
+                    <span key={index} className="skill-tag">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Apply Button */}
+                <button className="apply-btn">Apply Now</button>
               </div>
-
-              {/* Job Title and Company */}
-              <h3 className="text-xl font-semibold mb-1 text-primary">{job.title}</h3>
-              <p className="text-sm mb-4 text-secondary">{job.company}</p>
-
-              {/* Job Details */}
-              <div className="space-y-2 mb-4">
-                <div className="job-detail">
-                  <FiMapPin size={16} className="detail-icon" />
-                  <span>{job.location}</span>
-                </div>
-                <div className="job-detail">
-                  <FiBriefcase size={16} className="detail-icon" />
-                  <span>{job.type}</span>
-                </div>
-                <div className="job-detail">
-                  <FiDollarSign size={16} className="detail-icon" />
-                  <span>{job.salary}</span>
-                </div>
-                <div className="job-detail">
-                  <FiClock size={16} className="detail-icon" />
-                  <span>{job.posted}</span>
-                </div>
-              </div>
-
-              {/* Description */}
-              <p className="text-sm mb-4 line-clamp-3 text-secondary">{job.description}</p>
-
-              {/* Skills */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {job.skills.map((skill, index) => (
-                  <span key={index} className="skill-tag">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-
-              {/* Apply Button */}
-              <button className="apply-btn">Apply Now</button>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </main>
     </div>
-  )
+  );
 }
