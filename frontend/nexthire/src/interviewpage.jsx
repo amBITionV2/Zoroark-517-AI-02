@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import "./styles/joblistPage.css"; // Import the CSS file for consistent dark theme
 
 const InterviewPage = () => {
   const navigate = useNavigate();
@@ -60,7 +61,7 @@ const InterviewPage = () => {
   };
 
   return (
-    <div className="min-h-screen job-listing-bg p-6">
+    <div className="app min-h-screen p-6">
       <div className="max-w-4xl mx-auto">
         <div className="bg-gray-800 rounded-2xl p-8 shadow-lg">
           <h1 className="text-3xl font-bold mb-2 text-primary">Interview Preparation</h1>
@@ -180,8 +181,6 @@ const InterviewPage = () => {
             </div>
           </div>
           
-      
-          
           {/* Action Buttons */}
           <div className="flex justify-between mt-8">
             <button
@@ -190,7 +189,6 @@ const InterviewPage = () => {
             >
               Back to Jobs
             </button>
-          
           </div>
         </div>
       </div>
