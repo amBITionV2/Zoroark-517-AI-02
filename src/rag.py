@@ -1,8 +1,13 @@
 import re
 import google.generativeai as genai
 import json
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-genai.configure(api_key="AIzaSyAVSDsrZWnF3Gduwix97FrzgqG7buNI7co")
+
+genai.configure(api_key=os.environ["API_KEY"])
+
 
 def chunk_resume(resume_text: str):
     resume_text = re.sub(r'\s+', ' ', resume_text)

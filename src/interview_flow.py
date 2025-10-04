@@ -1,8 +1,11 @@
 import google.generativeai as genai
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-genai.configure(api_key="AIzaSyB0v5KTpHCvMFHelEkbjXlKzLuDbjMDQUQ")
+genai.configure(api_key=os.environ["API_KEY"])
 conversation_history = []
-resume_context = None  # will be filled when resume is provided
+resume_context = None
 
 def set_resume_context(resume_text: str):
     """Load resume text so AI can personalize questions."""
