@@ -1,0 +1,57 @@
+[
+    {
+        "question": "A deployed machine learning model begins experiencing a drop in prediction quality. Upon investigation, you suspect the distribution of incoming production data has subtly changed compared to the training data. Which of the following methods is most effective for systematically detecting this 'data drift'?",
+        "options": [
+            "Manually re-labeling a sample of recent predictions to check accuracy.",
+            "Performing statistical tests (e.g., KS-test, AD-test) on the distributions of key input features between historical and current data.",
+            "Increasing the model's complexity to better adapt to new patterns.",
+            "Restarting the model serving infrastructure daily."
+        ],
+        "answer": 2,
+        "difficulty": "medium"
+    },
+    {
+        "question": "An ML Engineering team is building several models that share common features (e.g., user's average purchase amount, last login time). To ensure consistency and reduce redundant feature computation, they decide to implement a feature store. What is the primary benefit a feature store provides in this scenario?",
+        "options": [
+            "It automatically retrains models when new data arrives.",
+            "It simplifies model versioning and artifact management.",
+            "It guarantees consistency of features between training and online serving environments.",
+            "It reduces the need for data scientists to understand SQL queries."
+        ],
+        "answer": 3,
+        "difficulty": "medium"
+    },
+    {
+        "question": "You are tasked with training a deep learning model for image classification. The dataset is extremely large (terabytes) and the model architecture is complex, making training on a single GPU machine prohibitively slow and prone to out-of-memory errors. Which approach is most appropriate to address these challenges?",
+        "options": [
+            "Downsample the dataset and simplify the model architecture.",
+            "Use a larger single GPU with more memory.",
+            "Implement distributed training across multiple GPUs or machines (e.g., using Horovod, TensorFlow's distributed strategies, PyTorch's DDP).",
+            "Switch to a different model type like a Support Vector Machine."
+        ],
+        "answer": 3,
+        "difficulty": "medium"
+    },
+    {
+        "question": "A newly deployed credit scoring model is suspected of exhibiting unfair bias against a specific demographic group. As an ML Engineer, what is the most systematic approach to investigate and quantify this potential bias?",
+        "options": [
+            "Conduct A/B testing with a different model version on the affected group.",
+            "Manually review a large number of individual predictions for the affected group.",
+            "Monitor overall model accuracy and precision-recall curves for the entire population.",
+            "Evaluate various fairness metrics (e.g., demographic parity, equalized odds) by comparing model performance (e.g., true positive rate, false positive rate) across different sensitive subgroups."
+        ],
+        "answer": 4,
+        "difficulty": "medium"
+    },
+    {
+        "question": "Your team is deploying a real-time recommendation model that needs to serve millions of requests per second with very low latency (under 50ms). What is a critical engineering consideration for the serving infrastructure to meet these requirements?",
+        "options": [
+            "Ensuring the model training pipeline is fully automated.",
+            "Designing for high availability, fault tolerance, and efficient horizontal scaling.",
+            "Implementing robust monitoring for data drift and model decay.",
+            "Using a feature store to manage all input features."
+        ],
+        "answer": 2,
+        "difficulty": "medium"
+    }
+]

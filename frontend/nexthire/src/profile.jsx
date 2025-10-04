@@ -11,8 +11,6 @@ import {
   FaTimes,
   FaSignOutAlt,
 } from "react-icons/fa";
-import accountLogo from "./assets/account-logo.svg";
-import jobLogo from "./assets/job-logo.svg";
 import "./styles/profilePage.css";
 
 const Profile = () => {
@@ -37,6 +35,8 @@ const Profile = () => {
     newPassword: "",
     confirmPassword: "",
   });
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleResize = () => {
@@ -155,7 +155,6 @@ const Profile = () => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
-  const navigate = useNavigate();
 
   return (
     <div className="app">
@@ -176,11 +175,9 @@ const Profile = () => {
           {/* User Profile */}
           <div className="mb-8">
             <div className="flex flex-col items-center gap-3 mb-6">
-              <img
-                src={accountLogo}
-                alt="User"
-                className="w-16 h-16 rounded-full"
-              />
+              <div className="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center">
+                <FaUser className="text-gray-600 text-xl" />
+              </div>
               <div className="text-center">
                 <h3 className="font-semibold text-primary">John Doe</h3>
                 <p className="text-sm text-secondary">Job Seeker</p>
@@ -190,22 +187,22 @@ const Profile = () => {
 
           {/* Navigation */}
           <nav className="nav-links">
-            <a onClick={() => navigate("/dashboard")} className="nav-link">
+            <button onClick={() => navigate("/dashboard")} className="nav-link">
               <FaHome />
               <span>Dashboard</span>
-            </a>
-            <a onClick={() => navigate("/jobs")} className="nav-link">
+            </button>
+            <button onClick={() => navigate("/jobs")} className="nav-link">
               <FaBriefcase />
               <span>Jobs</span>
-            </a>
-            <a onClick={() => navigate("/applications")} className="nav-link">
+            </button>
+            <button onClick={() => navigate("/applications")} className="nav-link">
               <FaClipboardList />
               <span>Applications</span>
-            </a>
-            <a onClick={() => navigate("/profile")} className="nav-link active">
+            </button>
+            <button onClick={() => navigate("/profile")} className="nav-link active">
               <FaUser />
               <span>Profile</span>
-            </a>
+            </button>
           </nav>
 
           {/* Logout */}
@@ -228,7 +225,9 @@ const Profile = () => {
               <FaBars />
             </button>
             <h2 className="mobile-title">My Profile</h2>
-            <img src={accountLogo} alt="User" className="mobile-avatar" />
+            <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+              <FaUser className="text-gray-600 text-sm" />
+            </div>
           </div>
         )}
 

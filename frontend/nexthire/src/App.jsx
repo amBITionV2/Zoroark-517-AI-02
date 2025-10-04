@@ -5,13 +5,15 @@ import LandingPage from "./landingpage";
 import UserAuth from "../componets/login";
 import UserPage from "./userpage";   // Import the UserPage component
 import Joblist from "./joblist";
+import JobApplicationRules from "./jobapplicationrules";
+import InterviewPage from "./interviewpage";
+import MCQQuiz from "./mcqquiz.jsx";
+import AIInterviewDashboard from "./aiinterview"; // Import the AI Interview Dashboard
 import Applications from "./applications";
 import Profile from "./profile";
 import AdminSignup from "../componets/adminsignup";
 import AdminLoginForm from "../componets/AdminLoginForm";
 import AdminSignupForm from "../componets/adminsignup";
-
-
 function App() {
   return (
     <Router>
@@ -21,6 +23,10 @@ function App() {
         <Route path="/adminSignup" element={<AdminSignup />} />
         <Route path="/dashboard" element={<UserPage />} />
         <Route path="/jobs" element={<Joblist />} />
+        <Route path="/jobs/rules" element={<JobApplicationRules />} />
+        <Route path="/jobs/interview" element={<InterviewPage />} />
+        <Route path="/jobs/mcq" element={<MCQQuiz />} />
+        <Route path="/jobs/ai-interview" element={<AIInterviewDashboard />} /> {/* Add AI Interview route */}
         <Route path="/applications" element={<Applications />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/adminLoginForm" element={<AdminLoginForm />} />

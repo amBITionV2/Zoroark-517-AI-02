@@ -54,6 +54,11 @@ export const authAPI = {
     return apiRequest('/signup', 'POST', userData, isFormData);
   },
 
+  // Signup user with resume
+  signupWithResume: (formData) => {
+    return apiRequest('/signup', 'POST', formData, true);
+  },
+
   // Login user
   login: (credentials) => {
     return apiRequest('/login', 'POST', credentials);

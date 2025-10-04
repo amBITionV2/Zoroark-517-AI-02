@@ -25,7 +25,7 @@ const UserPage = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      navigate("/login");
+      navigate("/user");
       return;
     }
 
@@ -34,10 +34,17 @@ const UserPage = () => {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
-      .then((data) => setUser(data.user))
+      .then((data) => {
+        if (data.success) {
+          setUser(data.user);
+        } else {
+          throw new Error(data.message || "Failed to fetch profile");
+        }
+      })
       .catch((err) => {
         console.error("Error fetching profile:", err);
-        navigate("/login");
+        localStorage.removeItem("token");
+        navigate("/user");
       });
   }, [navigate]);
 
