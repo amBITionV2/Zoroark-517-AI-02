@@ -19,117 +19,6 @@ import { useNavigate } from "react-router-dom"
 import accountLogo from "./assets/account-logo.svg";
 import jobLogo from "./assets/job-logo.svg";
 
-// Mock application data
-
-const mockApplications = [
-  {
-    id: 1,
-    company: "Google",
-    jobTitle: "Senior Frontend Engineer",
-    applicationDate: "2024-03-15",
-    status: "Pending",
-    logo: "/google-logo.png",
-  },
-  {
-    id: 2,
-    company: "Microsoft",
-    jobTitle: "Full Stack Developer",
-    applicationDate: "2024-03-10",
-    status: "Accepted",
-    scores: {
-      resume: 85,
-      mcq: 90,
-      coding: 88,
-      total: 263,
-    },
-    strengths: ["React", "Node.js", "TypeScript", "Problem Solving", "System Design"],
-    missingSkills: ["AWS", "GraphQL"],
-    recommendations: [
-      "Consider taking an AWS certification course",
-      "Build a project using GraphQL to strengthen your skills",
-      "Practice more system design interviews",
-      "Contribute to open-source projects using these technologies",
-    ],
-    logo: "/microsoft-logo.png",
-  },
-  {
-    id: 3,
-    company: "Amazon",
-    jobTitle: "Software Development Engineer",
-    applicationDate: "2024-03-08",
-    status: "Rejected",
-    scores: {
-      resume: 70,
-      mcq: 65,
-      coding: 68,
-      total: 203,
-    },
-    strengths: ["JavaScript", "React", "Problem Solving"],
-    missingSkills: ["Kubernetes", "Microservices", "Distributed Systems"],
-    recommendations: [
-      "Study distributed systems architecture",
-      "Learn Kubernetes and container orchestration",
-      "Practice more algorithmic problem solving",
-      "Gain experience with microservices patterns",
-      "Work on scalability challenges",
-    ],
-    logo: "/amazon-logo.png",
-  },
-  {
-    id: 4,
-    company: "Meta",
-    jobTitle: "Frontend Engineer",
-    applicationDate: "2024-03-05",
-    status: "Pending",
-    logo: "/meta-logo-abstract.png",
-  },
-  {
-    id: 5,
-    company: "Apple",
-    jobTitle: "Software Engineer",
-    applicationDate: "2024-03-01",
-    status: "Accepted",
-    scores: {
-      resume: 88,
-      mcq: 92,
-      coding: 90,
-      total: 270,
-    },
-    strengths: ["Swift", "React Native", "UI/UX Design", "Performance Optimization"],
-    missingSkills: ["Metal API", "Core ML"],
-    recommendations: [
-      "Explore Metal API for graphics programming",
-      "Learn Core ML for machine learning integration",
-      "Study Apple Human Interface Guidelines in depth",
-      "Build more native iOS applications",
-    ],
-    logo: "/apple-logo.png",
-  },
-  {
-    id: 6,
-    company: "Netflix",
-    jobTitle: "Senior Full Stack Developer",
-    applicationDate: "2024-02-28",
-    status: "Rejected",
-    scores: {
-      resume: 72,
-      mcq: 68,
-      coding: 70,
-      total: 210,
-    },
-    strengths: ["React", "Node.js", "MongoDB"],
-    missingSkills: ["Kafka", "Redis", "Video Streaming Technologies"],
-    recommendations: [
-      "Learn Apache Kafka for event streaming",
-      "Gain experience with Redis caching strategies",
-      "Study video streaming protocols and CDN technologies",
-      "Practice building high-scale distributed systems",
-      "Improve data structure and algorithm skills",
-    ],
-    logo: "/netflix-inspired-logo.png",
-  },
-]
-
 function Applications() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
@@ -137,6 +26,9 @@ function Applications() {
   const [filterStatus, setFilterStatus] = useState("All")
   const [searchQuery, setSearchQuery] = useState("")
   const [sortBy, setSortBy] = useState("Date")
+  const [applications, setApplications] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -160,11 +52,57 @@ function Applications() {
     }
   }, [isMobile, isSidebarOpen])
 
+  // Fetch applications from API
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/user");
+          return;
+        }
+
+        const response = await fetch("http://localhost:5000/api/auth/applied-jobs", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          // Transform the data to match the expected format
+          const transformedApplications = data.appliedJobs.map((job, index) => ({
+            id: index + 1,
+            company: job.companyName || "Unknown Company",
+            jobTitle: job.role || "Unknown Position",
+            applicationDate: job.appliedAt || new Date().toISOString(),
+            status: "Pending", // Default status, you might want to add this to your backend
+            // You can add scores, strengths, etc. if they are stored in your database
+          }));
+          
+          setApplications(transformedApplications);
+        } else {
+          setError(data.message || "Failed to fetch applications");
+        }
+      } catch (err) {
+        setError("Failed to fetch applications");
+        console.error("Error fetching applications:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, [navigate]);
+
   const toggleCard = (id) => {
     setExpandedCards((prev) => (prev.includes(id) ? prev.filter((cardId) => cardId !== id) : [...prev, id]))
   }
 
-  const filteredApplications = mockApplications
+  const filteredApplications = applications
     .filter((app) => filterStatus === "All" || app.status === filterStatus)
     .filter(
       (app) =>
@@ -181,6 +119,30 @@ function Applications() {
       }
       return 0
     })
+
+  if (loading) {
+    return (
+      <div className="app">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p className="loading-text">Loading applications...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="app">
+        <div className="error-container">
+          <p className="error-text">Error: {error}</p>
+          <button className="retry-btn" onClick={() => window.location.reload()}>
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app">
@@ -212,18 +174,18 @@ function Applications() {
                   </div>    
 
           <nav className="nav-links">
-            <a className="nav-link" onClick={() => navigate("/dashboard")}>
+            <button className="nav-link" onClick={() => navigate("/dashboard")}>
               <FaHome /> Dashboard
-            </a>
-            <a className="nav-link" onClick={() => navigate("/jobs")}>
+            </button>
+            <button className="nav-link" onClick={() => navigate("/jobs")}>
               <FaBriefcase /> Jobs
-            </a>
-            <a href="#" className="nav-link active">
+            </button>
+            <button className="nav-link active">
               <FaClipboardList /> Applications
-            </a>
-            <a onClick={() => navigate("/profile")} className="nav-link">
+            </button>
+            <button onClick={() => navigate("/profile")} className="nav-link">
               <FaUser /> Profile
-            </a>
+            </button>
           </nav>
 
           <button className="logout-btn">
