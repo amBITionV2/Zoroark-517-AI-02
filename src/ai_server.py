@@ -7,10 +7,8 @@ from stt_service import listen_and_transcribe, stop_recording, is_recording
 from conclusion_checker import check_conclusion
 from tts_service import speak_text, get_audio_base64
 
-# Initialize FastAPI
 app = FastAPI()
 
-# Configure CORS
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173"
@@ -127,7 +125,6 @@ def listen_and_respond():
         print(f"Error in listen_and_respond: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to process answer: {str(e)}")
 
-# Optional: Endpoint to get current interview state
 @app.get("/ai/status")
 def get_status():
     """Get current interview status"""
@@ -136,7 +133,6 @@ def get_status():
         "current_question_number": interview_state['question_number']
     }
 
-# Optional: Endpoint to manually end interview
 @app.post("/ai/end")
 def end_interview():
     """Manually end the interview"""

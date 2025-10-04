@@ -14,14 +14,163 @@ const AIInterviewDashboard = () => {
   const [lastAnswer, setLastAnswer] = useState("");
   const [interviewEnded, setInterviewEnded] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [peopleCount, setPeopleCount] = useState(0);
+  const [modelLoaded, setModelLoaded] = useState(false);
+  const [warningCount, setWarningCount] = useState(0);
+  const [showWarning, setShowWarning] = useState(false);
+  const [transcript, setTranscript] = useState([]);
+  const [loadingStatus, setLoadingStatus] = useState("Initializing...");
   
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const audioRef = useRef(null);
   const recordingTimerRef = useRef(null);
   const abortControllerRef = useRef(null);
+  const detectionIntervalRef = useRef(null);
+  const modelRef = useRef(null);
+  const previousPersonCountRef = useRef(0);
 
-  // Function to play audio from base64
+  // Load TensorFlow.js and COCO-SSD - CLEAN VERSION
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadEverything = async () => {
+      try {
+        // Step 1: Load TensorFlow.js
+        setLoadingStatus("Loading TensorFlow.js...");
+        console.log("🔄 Step 1: Loading TensorFlow.js...");
+        
+        if (!window.tf) {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.2.0/dist/tf.min.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
+        
+        console.log("✅ TensorFlow.js loaded!");
+        
+        // Step 2: Load COCO-SSD
+        setLoadingStatus("Loading COCO-SSD library...");
+        console.log("🔄 Step 2: Loading COCO-SSD library...");
+        
+        if (!window.cocoSsd) {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
+        
+        console.log("✅ COCO-SSD library loaded!");
+        
+        // Step 3: Load the model
+        setLoadingStatus("Loading detection model (10-20s)...");
+        console.log("🔄 Step 3: Loading detection model...");
+        
+        const model = await window.cocoSsd.load();
+        
+        if (isMounted) {
+          modelRef.current = model;
+          setModelLoaded(true);
+          setLoadingStatus("Detection ready!");
+          console.log("✅ ALL LOADED! Detection is ready!");
+        }
+        
+      } catch (error) {
+        console.error("❌ Loading failed:", error);
+        setLoadingStatus("Failed to load");
+      }
+    };
+
+    loadEverything();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Monitor person count changes and trigger warnings
+  useEffect(() => {
+    if (!interviewStarted || interviewEnded) return;
+
+    if (peopleCount > 1 && previousPersonCountRef.current <= 1) {
+      setWarningCount(prev => prev + 1);
+      setShowWarning(true);
+      
+      setTranscript(prev => [...prev, {
+        type: "warning",
+        timestamp: new Date().toISOString(),
+        message: `Multiple people detected (${peopleCount} people)`,
+        warningNumber: warningCount + 1
+      }]);
+      
+      setTimeout(() => setShowWarning(false), 5000);
+    }
+    
+    previousPersonCountRef.current = peopleCount;
+  }, [peopleCount, interviewStarted, interviewEnded, warningCount]);
+
+  // Person detection function
+  const detectPersons = async () => {
+    if (!modelRef.current || !videoRef.current || !canvasRef.current || !cameraActive) {
+      return;
+    }
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+
+    if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+    }
+
+    try {
+      const predictions = await modelRef.current.detect(video);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const persons = predictions.filter(p => p.class === 'person' && p.score > 0.5);
+      
+      persons.forEach(person => {
+        const [x, y, width, height] = person.bbox;
+        
+        ctx.strokeStyle = persons.length > 1 ? '#FF0000' : '#00FF00';
+        ctx.lineWidth = 3;
+        ctx.font = '16px Arial';
+        ctx.fillStyle = persons.length > 1 ? '#FF0000' : '#00FF00';
+        
+        ctx.beginPath();
+        ctx.rect(x, y, width, height);
+        ctx.stroke();
+        
+        const label = `Person ${(person.score * 100).toFixed(1)}%`;
+        ctx.fillText(label, x, y > 20 ? y - 5 : y + 20);
+      });
+      
+      setPeopleCount(persons.length);
+    } catch (err) {
+      console.error('Error during detection:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (cameraActive && modelLoaded && videoRef.current) {
+      detectionIntervalRef.current = setInterval(detectPersons, 100);
+    }
+    
+    return () => {
+      if (detectionIntervalRef.current) {
+        clearInterval(detectionIntervalRef.current);
+      }
+    };
+  }, [cameraActive, modelLoaded]);
+
   const playAudio = (base64Audio) => {
     if (!base64Audio) return Promise.resolve();
     
@@ -38,7 +187,6 @@ const AIInterviewDashboard = () => {
     });
   };
 
-  // Timer effect
   useEffect(() => {
     if (!interviewStarted || interviewEnded) return;
     
@@ -56,16 +204,17 @@ const AIInterviewDashboard = () => {
     return () => clearInterval(timer);
   }, [interviewStarted, interviewEnded]);
 
-  // Initialize camera
   useEffect(() => {
     const initCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+          video: { width: 640, height: 480 },
           audio: true,
         });
         streamRef.current = stream;
-        if (videoRef.current) videoRef.current.srcObject = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
         setCameraActive(true);
       } catch (err) {
         console.error("Error accessing camera:", err);
@@ -85,6 +234,9 @@ const AIInterviewDashboard = () => {
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
       }
+      if (detectionIntervalRef.current) {
+        clearInterval(detectionIntervalRef.current);
+      }
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -97,6 +249,31 @@ const AIInterviewDashboard = () => {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const downloadTranscript = () => {
+    const transcriptData = {
+      interview_date: new Date().toISOString(),
+      total_warnings: warningCount,
+      duration_seconds: 30 * 60 - timeLeft,
+      conversation: transcript.filter(t => t.type !== "warning"),
+      warnings: transcript.filter(t => t.type === "warning"),
+      summary: {
+        total_questions: transcript.filter(t => t.type === "question").length,
+        total_answers: transcript.filter(t => t.type === "answer").length,
+        cheating_flags: warningCount
+      }
+    };
+    
+    const blob = new Blob([JSON.stringify(transcriptData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `interview_transcript_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleEndInterview = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -106,7 +283,15 @@ const AIInterviewDashboard = () => {
     }
     setInterviewEnded(true);
     setAiStatus("Interview completed");
-    alert("Interview has ended. Thank you for your time!");
+    
+    setTranscript(prev => [...prev, {
+      type: "summary",
+      timestamp: new Date().toISOString(),
+      total_warnings: warningCount,
+      duration: 30 * 60 - timeLeft
+    }]);
+    
+    alert(`Interview has ended. Total warnings: ${warningCount}. Click 'Download Transcript' to save the conversation.`);
   };
 
   const toggleMic = () => {
@@ -119,7 +304,6 @@ const AIInterviewDashboard = () => {
     }
   };
 
-  // Start interview
   const startInterview = async () => {
     if (!cameraActive) {
       alert("Please enable camera access first!");
@@ -129,6 +313,9 @@ const AIInterviewDashboard = () => {
     setInterviewStarted(true);
     setAiStatus("AI is thinking...");
     setCurrentQuestion("");
+    setTranscript([]);
+    setWarningCount(0);
+    previousPersonCountRef.current = 0;
 
     try {
       const resumeText = `Experienced Frontend Developer with 3+ years working with React, JavaScript, and Node.js. 
@@ -146,11 +333,20 @@ const AIInterviewDashboard = () => {
       }
       
       const data = await res.json();
-      setCurrentQuestion(data.question);
+      const question = data.question;
+      
+      setCurrentQuestion(question);
       setQuestionNumber(data.question_number);
       setAiStatus("AI is speaking...");
       
-      // Play audio if available
+      setTranscript(prev => [...prev, {
+        type: "question",
+        question_number: data.question_number,
+        timestamp: new Date().toISOString(),
+        speaker: "AI",
+        text: question
+      }]);
+      
       if (data.audio) {
         try {
           await playAudio(data.audio);
@@ -158,7 +354,6 @@ const AIInterviewDashboard = () => {
           console.error("Audio playback error:", audioErr);
         }
       } else {
-        // Fallback delay if no audio
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
       
@@ -172,7 +367,6 @@ const AIInterviewDashboard = () => {
     }
   };
 
-  // Capture answer and get AI response
   const speakAnswer = async () => {
     if (isListening) return;
     
@@ -186,12 +380,10 @@ const AIInterviewDashboard = () => {
     setLastAnswer("");
     setRecordingTime(0);
 
-    // Start recording timer
     recordingTimerRef.current = setInterval(() => {
       setRecordingTime(prev => prev + 1);
     }, 1000);
 
-    // Create abort controller for this request
     abortControllerRef.current = new AbortController();
 
     try {
@@ -207,18 +399,35 @@ const AIInterviewDashboard = () => {
       
       const data = await res.json();
       
-      // Clear recording timer
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
         setRecordingTime(0);
       }
       
-      setLastAnswer(data.candidate_answer);
-      setCurrentQuestion(data.ai_response);
+      const candidateAnswer = data.candidate_answer;
+      const aiResponse = data.ai_response;
+      
+      setLastAnswer(candidateAnswer);
+      setCurrentQuestion(aiResponse);
       setQuestionNumber(data.question_number);
       setAiStatus("AI is speaking...");
       
-      // Play audio if available
+      setTranscript(prev => [...prev, {
+        type: "answer",
+        question_number: data.question_number - 1,
+        timestamp: new Date().toISOString(),
+        speaker: "Candidate",
+        text: candidateAnswer
+      }]);
+      
+      setTranscript(prev => [...prev, {
+        type: "question",
+        question_number: data.question_number,
+        timestamp: new Date().toISOString(),
+        speaker: "AI",
+        text: aiResponse
+      }]);
+      
       if (data.audio) {
         try {
           await playAudio(data.audio);
@@ -226,7 +435,6 @@ const AIInterviewDashboard = () => {
           console.error("Audio playback error:", audioErr);
         }
       } else {
-        // Fallback delay if no audio
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
       
@@ -244,7 +452,6 @@ const AIInterviewDashboard = () => {
         setAiStatus("Error processing answer. Please try again.");
       }
       
-      // Clear recording timer
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
         setRecordingTime(0);
@@ -254,10 +461,8 @@ const AIInterviewDashboard = () => {
     }
   };
 
-  // Stop recording early
   const stopRecording = async () => {
     try {
-      // Call backend to stop recording
       await fetch(`${BACKEND_URL}/ai/stop-recording`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -268,7 +473,6 @@ const AIInterviewDashboard = () => {
       console.error("Error stopping recording:", err);
     }
     
-    // Clean up frontend timers
     if (recordingTimerRef.current) {
       clearInterval(recordingTimerRef.current);
       setRecordingTime(0);
@@ -277,14 +481,54 @@ const AIInterviewDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 md:p-6">
+      {/* Warning Popup */}
+      {showWarning && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
+          <div className="bg-red-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3">
+            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+            </svg>
+            <div>
+              <p className="font-bold text-lg">⚠️ Multiple People Detected!</p>
+              <p className="text-sm">Warning #{warningCount} - {peopleCount} people in frame</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Warning Banner */}
+      {warningCount > 0 && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40">
+          <div className="bg-yellow-600 text-white px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+            </svg>
+            <span className="font-semibold">Total Warnings: {warningCount}</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Frontend Dev - Live Interview</h1>
           <p className="text-gray-400">AI Interview Session • Question {questionNumber}</p>
         </div>
-        <div className={`${timeLeft < 300 ? 'bg-red-500' : 'bg-green-500'} text-white px-4 py-2 rounded-full text-lg font-bold`}>
-          Time Left: {formatTime(timeLeft)}
+        <div className="flex items-center gap-3">
+          {interviewEnded && (
+            <button
+              onClick={downloadTranscript}
+              className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-full font-semibold transition flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
+              </svg>
+              Download Transcript
+            </button>
+          )}
+          <div className={`${timeLeft < 300 ? 'bg-red-500' : 'bg-green-500'} text-white px-4 py-2 rounded-full text-lg font-bold`}>
+            Time Left: {formatTime(timeLeft)}
+          </div>
         </div>
       </div>
 
@@ -345,12 +589,30 @@ const AIInterviewDashboard = () => {
 
         {/* User Panel */}
         <div className="bg-gray-800 rounded-2xl shadow-xl p-6 flex flex-col h-[600px]">
-          <h2 className="text-xl font-bold mb-6">You</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold">You</h2>
+            {modelLoaded && cameraActive && (
+              <div className={`${peopleCount > 1 ? 'bg-red-600 animate-pulse' : 'bg-green-600'} px-3 py-1 rounded-full text-sm flex items-center gap-2`}>
+                <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                People: {peopleCount}
+              </div>
+            )}
+          </div>
           
           <div className="flex-grow flex flex-col">
             {cameraActive ? (
               <div className="flex-grow bg-gray-900 rounded-xl overflow-hidden relative">
-                <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted 
+                  className="w-full h-full object-cover"
+                />
+                <canvas 
+                  ref={canvasRef} 
+                  className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
+                />
                 <div className="absolute top-4 left-4 bg-black bg-opacity-60 px-3 py-1 rounded-full flex items-center">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-2"></div>
                   <span className="text-red-400 text-sm font-semibold">RECORDING</span>
@@ -367,6 +629,16 @@ const AIInterviewDashboard = () => {
                     <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd"/>
                     </svg>
+                  </div>
+                )}
+                {!modelLoaded && cameraActive && (
+                  <div className="absolute bottom-4 left-4 bg-yellow-600 bg-opacity-80 px-3 py-1 rounded-full text-xs">
+                    {loadingStatus}
+                  </div>
+                )}
+                {modelLoaded && cameraActive && (
+                  <div className="absolute bottom-4 left-4 bg-green-600 bg-opacity-80 px-3 py-1 rounded-full text-xs">
+                    ✓ Detection Active
                   </div>
                 )}
               </div>
