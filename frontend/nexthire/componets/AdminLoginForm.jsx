@@ -197,6 +197,7 @@ export default function AdminLoginForm( ) {
             <button
               type="submit"
               disabled={isSubmitting}
+              onClick={() => navigate("/adminDashboard")}
               className="w-full px-6 py-3 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 background: "linear-gradient(135deg, #22D3EE 0%, #6366F1 100%)",

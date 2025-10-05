@@ -13,6 +13,10 @@ import Applications from "./applications";
 import Profile from "./profile";
 import AdminLoginForm from "../componets/AdminLoginForm";
 import AdminSignupForm from "../componets/AdminSignupForm.jsx";
+import Dashboard from "./admin/adminDashboard.jsx";
+import CandidateDetail from "./admin/candidateDetails.jsx";
+import CreateJob from "./admin/createJobs.jsx";
+
 function App() {
   return (
     <Router>
@@ -29,6 +33,9 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/adminLoginForm" element={<AdminLoginForm />} />
         <Route path="/adminSignupForm" element={<AdminSignupForm />} />
+        <Route path="/adminDashboard" element={<Dashboard />} />
+        <Route path="/adminCandidate/:id" element={<CandidateDetail />} />
+        <Route path="/createJob" element={<CreateJob />} />
       </Routes>
       <ToastContainer
         position="top-right"
