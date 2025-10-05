@@ -167,6 +167,11 @@ const MCQQuiz = () => {
     navigate('/jobs');
   };
 
+  const handleProceedToVideoCall = () => {
+    // Navigate to the AI interview page after MCQ completion
+    navigate('/jobs/ai-interview');
+  };
+
   const calculateScore = () => {
     return selectedAnswers.reduce((score, answer, index) => {
       if (answer === questions[index].correct) {
@@ -226,10 +231,10 @@ const MCQQuiz = () => {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
-              onClick={handleRestart}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300"
+              onClick={handleProceedToVideoCall}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300"
             >
-              Restart Quiz
+              Proceed to Video Interview
             </button>
             <button
               onClick={handleGoHome}
