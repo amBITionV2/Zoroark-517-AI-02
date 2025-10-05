@@ -16,6 +16,7 @@ import AdminSignupForm from "../componets/AdminSignupForm.jsx";
 import Dashboard from "./admin/adminDashboard.jsx";
 import CandidateDetail from "./admin/candidateDetails.jsx";
 import CreateJob from "./admin/createJobs.jsx";
+import ProfileSettings from "./admin/profileSettings.jsx";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/adminDashboard" element={<Dashboard />} />
         <Route path="/adminCandidate/:id" element={<CandidateDetail />} />
         <Route path="/createJob" element={<CreateJob />} />
+        <Route path="/profileSettings" element={<ProfileSettings />} />
       </Routes>
       <ToastContainer
         position="top-right"

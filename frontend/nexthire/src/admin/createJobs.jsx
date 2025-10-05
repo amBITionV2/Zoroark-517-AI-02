@@ -92,8 +92,7 @@ const CreateJob = () => {
   }
 
   const handleEditProfile = () => {
-    console.log("Edit Profile clicked")
-    setIsProfileDropdownOpen(false)
+    navigate("/profileSettings")
   }
 
   const handleLogout = () => {
