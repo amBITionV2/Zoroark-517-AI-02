@@ -8,7 +8,7 @@ const upload = multer(); // store file in memory for pdf-parse
 
 router.post("/signup", upload.single("resume"), signup);
 router.post("/login", login);
-router.post("/:adminId/apply", protect, applyForJob);
+router.post("/:adminId/:jobId/apply", protect, applyForJob);
 router.get("/jobs", protect, getAllJobs);
 
 // Get all applied jobs

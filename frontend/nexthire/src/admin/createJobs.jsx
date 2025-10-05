@@ -36,6 +36,7 @@ const CreateJob = () => {
 
   const [currentSkill, setCurrentSkill] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState("")
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -65,30 +66,57 @@ const CreateJob = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError("")
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      // Get token from localStorage (assuming it's stored there after login)
+      const token = localStorage.getItem("adminToken")
+      
+      if (!token) {
+        throw new Error("No authentication token found. Please log in again.")
+      }
 
-    console.log("Job Posted:", formData)
-    setIsSubmitting(false)
+      // Send data to backend
+      const response = await fetch("http://localhost:5000/api/admin/post-job", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      })
 
-    // Reset form
-    setFormData({
-      role: "",
-      jobDescription: "",
-      salary: "",
-      location: "",
-      experienceRequired: "",
-      skillsRequired: [],
-      jobType: "Full-time",
-      applicationDeadline: "",
-      hackerRankLink: "",
-      mcqDifficulty: "Medium",
-      mcqQuestions: "",
-    })
+      const result = await response.json()
 
-    // Navigate back to dashboard
-    navigate("/adminDashboard")
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to post job")
+      }
+
+      console.log("Job Posted:", result.job)
+      
+      // Reset form
+      setFormData({
+        role: "",
+        jobDescription: "",
+        salary: "",
+        location: "",
+        experienceRequired: "",
+        skillsRequired: [],
+        jobType: "Full-time",
+        applicationDeadline: "",
+        hackerRankLink: "",
+        mcqDifficulty: "Medium",
+        mcqQuestions: "",
+      })
+
+      // Navigate back to dashboard
+      navigate("/adminDashboard")
+    } catch (err) {
+      console.error("Error posting job:", err)
+      setError(err.message || "An error occurred while posting the job")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleEditProfile = () => {
@@ -97,7 +125,10 @@ const CreateJob = () => {
 
   const handleLogout = () => {
     console.log("Logout clicked")
-    setIsProfileDropdownOpen(false)
+    // Remove token from localStorage
+    localStorage.removeItem("adminToken")
+    // Navigate to login page
+    navigate("/adminLoginForm")
   }
 
   return (
@@ -189,6 +220,8 @@ const CreateJob = () => {
                 <h2>Create New Job Post</h2>
                 <p className="content-subtitle">Fill in the details to post a new job opening</p>
               </div>
+
+              {error && <div className="error-message">{error}</div>}
 
               <form onSubmit={handleSubmit} className="job-form">
                 <div className="form-section">

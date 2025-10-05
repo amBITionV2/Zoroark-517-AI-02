@@ -35,6 +35,19 @@ const jobSchema = new mongoose.Schema({
   applicationDeadline: {
     type: Date,
   },
+  hackerRankLink: {
+    type: String,
+    default: "",
+  },
+  mcqDifficulty: {
+    type: String,
+    enum: ["Easy", "Medium", "Hard"],
+    default: "Medium",
+  },
+  mcqQuestions: {
+    type: Number,
+    default: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
