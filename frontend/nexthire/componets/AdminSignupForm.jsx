@@ -2,16 +2,15 @@
 
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import "../src/styles/adminsignup.css"
+import "../src/styles/globals.css"
 
 export default function AdminSignupForm() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [apiError, setApiError] = useState("")
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  // Form data state
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -21,7 +20,7 @@ export default function AdminSignupForm() {
     companyWebsite: "",
     companyLocation: "",
     companyDescription: "",
-    position: "",
+    position: "HR Manager",
     department: "",
     contactNumber: "",
     profileImage: null,
@@ -30,25 +29,16 @@ export default function AdminSignupForm() {
     termsAccepted: false,
   })
 
-  // Validation errors state
   const [errors, setErrors] = useState({})
-
-  // Touched fields state
   const [touched, setTouched] = useState({})
-
-  // Password strength state
   const [passwordStrength, setPasswordStrength] = useState({ level: "", score: 0 })
-
-  // Profile image preview
   const [imagePreview, setImagePreview] = useState(null)
 
-  // Validate email format
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
   }
 
-  // Validate URL format
   const validateUrl = (url) => {
     try {
       new URL(url)
@@ -58,13 +48,11 @@ export default function AdminSignupForm() {
     }
   }
 
-  // Validate phone number format (+91-XXXXXXXXXX)
   const validatePhone = (phone) => {
     const phoneRegex = /^\+91-\d{10}$/
     return phoneRegex.test(phone)
   }
 
-  // Calculate password strength
   const calculatePasswordStrength = (password) => {
     let score = 0
     if (password.length >= 8) score++
@@ -78,7 +66,6 @@ export default function AdminSignupForm() {
     return { level: "strong", score: 100 }
   }
 
-  // Update password strength when password changes
   useEffect(() => {
     if (formData.password) {
       setPasswordStrength(calculatePasswordStrength(formData.password))
@@ -87,7 +74,6 @@ export default function AdminSignupForm() {
     }
   }, [formData.password])
 
-  // Validate individual field
   const validateField = (name, value) => {
     switch (name) {
       case "name":
@@ -128,25 +114,21 @@ export default function AdminSignupForm() {
     }
   }
 
-  // Handle input change
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target
 
     if (type === "file") {
       const file = files[0]
       if (file) {
-        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
           setErrors({ ...errors, profileImage: "File size must be less than 5MB" })
           return
         }
-        // Validate file type
         if (!file.type.startsWith("image/")) {
           setErrors({ ...errors, profileImage: "Only image files are allowed" })
           return
         }
         setFormData({ ...formData, profileImage: file })
-        // Create preview
         const reader = new FileReader()
         reader.onloadend = () => {
           setImagePreview(reader.result)
@@ -158,7 +140,6 @@ export default function AdminSignupForm() {
       const newValue = type === "checkbox" ? checked : value
       setFormData({ ...formData, [name]: newValue })
 
-      // Real-time validation
       if (touched[name]) {
         const error = validateField(name, newValue)
         setErrors({ ...errors, [name]: error })
@@ -166,7 +147,6 @@ export default function AdminSignupForm() {
     }
   }
 
-  // Handle blur
   const handleBlur = (e) => {
     const { name, value } = e.target
     setTouched({ ...touched, [name]: true })
@@ -174,7 +154,6 @@ export default function AdminSignupForm() {
     setErrors({ ...errors, [name]: error })
   }
 
-  // Handle drag and drop
   const handleDragOver = (e) => {
     e.preventDefault()
   }
@@ -183,18 +162,15 @@ export default function AdminSignupForm() {
     e.preventDefault()
     const file = e.dataTransfer.files[0]
     if (file) {
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setErrors({ ...errors, profileImage: "File size must be less than 5MB" })
         return
       }
-      // Validate file type
       if (!file.type.startsWith("image/")) {
         setErrors({ ...errors, profileImage: "Only image files are allowed" })
         return
       }
       setFormData({ ...formData, profileImage: file })
-      // Create preview
       const reader = new FileReader()
       reader.onloadend = () => {
         setImagePreview(reader.result)
@@ -204,7 +180,6 @@ export default function AdminSignupForm() {
     }
   }
 
-  // Validate current step
   const validateStep = (step) => {
     const newErrors = {}
     let fieldsToValidate = []
@@ -231,19 +206,16 @@ export default function AdminSignupForm() {
     return Object.keys(newErrors).length === 0
   }
 
-  // Handle next step
   const handleNext = () => {
     if (validateStep(currentStep)) {
       setCurrentStep(currentStep + 1)
     }
   }
 
-  // Handle previous step
   const handlePrevious = () => {
     setCurrentStep(currentStep - 1)
   }
 
-  // Clear all fields
   const handleClearAll = () => {
     setFormData({
       name: "",
@@ -254,7 +226,7 @@ export default function AdminSignupForm() {
       companyWebsite: "",
       companyLocation: "",
       companyDescription: "",
-      position: "",
+      position: "HR Manager",
       department: "",
       contactNumber: "",
       profileImage: null,
@@ -268,11 +240,9 @@ export default function AdminSignupForm() {
     setCurrentStep(1)
   }
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Validate all fields
     const allFields = [
       "name",
       "email",
@@ -304,41 +274,49 @@ export default function AdminSignupForm() {
     setApiError("")
 
     try {
-      // Prepare form data for API
-      const submitData = new FormData()
-      Object.keys(formData).forEach((key) => {
-        if (key === "profileImage" && formData[key]) {
-          submitData.append(key, formData[key])
-        } else if (key !== "profileImage" && key !== "confirmPassword") {
-          submitData.append(key, formData[key])
-        }
-      })
+      // Prepare form data for submission
+      const submitData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        companyName: formData.companyName,
+        companyWebsite: formData.companyWebsite,
+        companyLocation: formData.companyLocation,
+        companyDescription: formData.companyDescription,
+        position: formData.position,
+        department: formData.department,
+        contactNumber: formData.contactNumber,
+        profileImage: formData.profileImageUrl,
+        linkedinProfile: formData.linkedinProfile,
+      };
 
-      // Make API call
-      const response = await fetch("/api/admin/register", {
+      // Make API call to register admin
+      const response = await fetch("http://localhost:5000/api/admin/signup", {
         method: "POST",
-        body: submitData,
-      })
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submitData),
+      });
 
-      const data = await response.json()
+      const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Registration failed. Please try again.")
+      if (response.ok) {
+        // Success
+        setShowSuccess(true)
+        setTimeout(() => {
+          navigate("/adminLoginForm")
+        }, 3000)
+      } else {
+        setApiError(result.message || "Registration failed. Please try again.")
       }
-
-      // Success
-      setShowSuccess(true)
-      setTimeout(() => {
-        window.location.href = "/admin/login"
-      }, 3000)
     } catch (error) {
-      setApiError(error.message)
+      setApiError(error.message || "Network error. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // Render step content
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -346,7 +324,6 @@ export default function AdminSignupForm() {
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-[#F8FAFC] mb-6">Personal Information</h2>
 
-            {/* Name */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 Full Name *
@@ -364,7 +341,6 @@ export default function AdminSignupForm() {
               {touched.name && errors.name && <p className="mt-1 text-sm text-red-400">{errors.name}</p>}
             </div>
 
-            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 Email Address *
@@ -382,7 +358,6 @@ export default function AdminSignupForm() {
               {touched.email && errors.email && <p className="mt-1 text-sm text-red-400">{errors.email}</p>}
             </div>
 
-            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 Password *
@@ -430,7 +405,6 @@ export default function AdminSignupForm() {
               )}
             </div>
 
-            {/* Confirm Password */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 Confirm Password *
@@ -457,7 +431,6 @@ export default function AdminSignupForm() {
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-[#F8FAFC] mb-6">Company Information</h2>
 
-            {/* Company Name */}
             <div>
               <label htmlFor="companyName" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 Company Name *
@@ -477,7 +450,6 @@ export default function AdminSignupForm() {
               )}
             </div>
 
-            {/* Company Website */}
             <div>
               <label htmlFor="companyWebsite" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 Company Website *
@@ -497,7 +469,6 @@ export default function AdminSignupForm() {
               )}
             </div>
 
-            {/* Company Location */}
             <div>
               <label htmlFor="companyLocation" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 Company Location *
@@ -517,7 +488,6 @@ export default function AdminSignupForm() {
               )}
             </div>
 
-            {/* Company Description */}
             <div>
               <label htmlFor="companyDescription" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 Company Description *
@@ -550,25 +520,27 @@ export default function AdminSignupForm() {
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-[#F8FAFC] mb-6">Professional Details</h2>
 
-            {/* Position */}
             <div>
               <label htmlFor="position" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 Position/Job Title *
               </label>
-              <input
-                type="text"
+              <select
                 id="position"
                 name="position"
                 value={formData.position}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 className="w-full px-4 py-3 bg-[#161B33] border border-[rgba(99,102,241,0.2)] rounded-lg text-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#6366F1] focus:ring-2 focus:ring-[rgba(99,102,241,0.15)] transition-all"
-                placeholder="e.g., Senior Manager"
-              />
+              >
+                <option value="HR Manager">HR Manager</option>
+                <option value="Recruiter">Recruiter</option>
+                <option value="Admin">Admin</option>
+                <option value="Talent Acquisition">Talent Acquisition</option>
+                <option value="Other">Other</option>
+              </select>
               {touched.position && errors.position && <p className="mt-1 text-sm text-red-400">{errors.position}</p>}
             </div>
 
-            {/* Department */}
             <div>
               <label htmlFor="department" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 Department *
@@ -588,7 +560,6 @@ export default function AdminSignupForm() {
               )}
             </div>
 
-            {/* Contact Number */}
             <div>
               <label htmlFor="contactNumber" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 Contact Number *
@@ -608,7 +579,6 @@ export default function AdminSignupForm() {
               )}
             </div>
 
-            {/* Profile Image Upload */}
             <div>
               <label className="block text-sm font-medium text-[#F8FAFC] mb-2">Profile Image</label>
               <div
@@ -674,7 +644,6 @@ export default function AdminSignupForm() {
               {errors.profileImage && <p className="mt-1 text-sm text-red-400">{errors.profileImage}</p>}
             </div>
 
-            {/* LinkedIn Profile */}
             <div>
               <label htmlFor="linkedinProfile" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 LinkedIn Profile (Optional)
@@ -694,7 +663,6 @@ export default function AdminSignupForm() {
               )}
             </div>
 
-            {/* Terms and Conditions */}
             <div className="flex items-start space-x-3 pt-4">
               <input
                 type="checkbox"
@@ -733,7 +701,6 @@ export default function AdminSignupForm() {
       style={{ background: "linear-gradient(135deg, #0A0E27 0%, #0D1229 50%, #161B33 100%)" }}
     >
       <div className="w-full max-w-2xl">
-        {/* Progress Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             {[
@@ -771,7 +738,6 @@ export default function AdminSignupForm() {
           </div>
         </div>
 
-        {/* Form Card */}
         <div
           className="rounded-lg shadow-2xl p-8 border border-[rgba(99,102,241,0.2)]"
           style={{ background: "linear-gradient(135deg, #1E2749 0%, #161B33 100%)" }}
@@ -790,7 +756,6 @@ export default function AdminSignupForm() {
           <form onSubmit={handleSubmit}>
             {renderStepContent()}
 
-            {/* Form Actions */}
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               {currentStep > 1 && (
                 <button
@@ -841,7 +806,6 @@ export default function AdminSignupForm() {
               )}
             </div>
 
-            {/* Additional Actions */}
             <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
               <button
                 type="button"
@@ -850,15 +814,18 @@ export default function AdminSignupForm() {
               >
                 Clear All Fields
               </button>
-              <a onClick={() => navigate("/")} className="text-[#94A3B8] hover:text-[#22D3EE] transition-colors">
+              <button
+                type="button"
+                onClick={() => navigate('/adminLoginForm')}
+                className="text-[#94A3B8] hover:text-[#22D3EE] transition-colors"
+              >
                 Back to Login
-              </a>
+              </button>
             </div>
           </form>
         </div>
       </div>
 
-      {/* Success Modal */}
       {showSuccess && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div

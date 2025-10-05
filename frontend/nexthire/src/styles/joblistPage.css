@@ -9,7 +9,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
   color: var(--color-text-primary);
 }
-
+.text-primary {
+  color: var(--color-text-primary);
+}
+.text-secondary {
+  color: var(--color-text-secondary);
+}
 .app {
   display: flex;
   min-height: 100vh;
@@ -467,7 +472,7 @@ body {
 /* Line Clamp Utility */
 .line-clamp-3 {
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
