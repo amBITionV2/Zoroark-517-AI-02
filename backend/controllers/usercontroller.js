@@ -140,30 +140,42 @@ export const login = async (req, res) => {
 // User applies for a job
 export const applyForJob = async (req, res) => {
   try {
-    const { adminId } = req.params;          // Admin ID from URL
+    const { adminId, jobId } = req.params;   // Admin ID and Job ID from URL
     const userId = req.user._id;             // User ID from token
 
     // Find admin
     const admin = await Admin.findById(adminId);
     if (!admin) return res.status(404).json({ message: "Admin not found" });
 
-    // Check if user already applied
-    if (admin.appliedUsers.includes(userId)) {
-      return res.status(400).json({ message: "User already applied" });
+    // Find the specific job
+    const job = admin.jobsPosted.id(jobId);
+    if (!job) return res.status(404).json({ message: "Job not found" });
+
+    // Check if user already applied for this specific job
+    const user = await User.findById(userId);
+    const alreadyApplied = user.appliedJobs.some(
+      (appliedJob) => 
+        appliedJob.jobId.toString() === jobId && 
+        appliedJob.adminId.toString() === adminId
+    );
+    
+    if (alreadyApplied) {
+      return res.status(400).json({ message: "User already applied for this job" });
     }
 
-    // Add user to admin's appliedUsers
-    admin.appliedUsers.push(userId);
-    await admin.save();
+    // Add user to admin's appliedUsers if not already there
+    if (!admin.appliedUsers.includes(userId)) {
+      admin.appliedUsers.push(userId);
+      await admin.save();
+    }
 
-    // Optional: Add job info to user's appliedJobs
-    const job = admin.jobsPosted[0]; // replace with logic to get specific job if needed
-    const user = await User.findById(userId);
+    // Add job info to user's appliedJobs with initial status
     user.appliedJobs.push({
       jobId: job._id,
       adminId: admin._id,
       role: job.role,
       companyName: admin.companyName,
+      status: "Applied", // Initial status
     });
     await user.save();
 

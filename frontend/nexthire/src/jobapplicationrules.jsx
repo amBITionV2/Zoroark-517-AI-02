@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const JobApplicationRules = () => {
   const navigate = useNavigate();
@@ -11,9 +12,31 @@ const JobApplicationRules = () => {
     navigate("/jobs");
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (agreed) {
-      navigate("/jobs/interview", { state: { job } });
+      try {
+        // Apply for the job
+        const token = localStorage.getItem("token");
+        const response = await fetch(`http://localhost:5000/api/auth/${job.adminId}/${job.jobId}/apply`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          toast.success("Successfully applied for the job!");
+          navigate("/jobs/interview", { state: { job } });
+        } else {
+          toast.error(result.message || "Failed to apply for the job");
+        }
+      } catch (error) {
+        console.error("Error applying for job:", error);
+        toast.error("An error occurred while applying for the job");
+      }
     }
   };
 

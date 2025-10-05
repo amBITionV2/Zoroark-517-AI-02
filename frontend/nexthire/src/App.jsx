@@ -13,6 +13,11 @@ import Applications from "./applications";
 import Profile from "./profile";
 import AdminSignupForm from "../componets/AdminSignupForm.jsx";
 import AdminLoginForm from "../componets/AdminLoginForm";
+import Dashboard from "./admin/adminDashboard.jsx";
+import CandidateDetail from "./admin/candidateDetails.jsx";
+import CreateJob from "./admin/createJobs.jsx";
+import JobApplicants from "./admin/jobApplicants.jsx";
+import ApplicantDetail from "./admin/applicantDetails.jsx";
 
 function App() {
   return (
@@ -30,6 +35,13 @@ function App() {
         <Route path="/jobs/ai-interview" element={<AIInterviewDashboard />} /> {/* Add AI Interview route */}
         <Route path="/applications" element={<Applications />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/adminLoginForm" element={<AdminLoginForm />} />
+        <Route path="/adminSignupForm" element={<AdminSignupForm />} />
+        <Route path="/adminDashboard" element={<Dashboard />} />
+        <Route path="/adminCandidate/:id" element={<CandidateDetail />} />
+        <Route path="/createJob" element={<CreateJob />} />
+        <Route path="/admin/job/:jobId/applicants" element={<JobApplicants />} />
+        <Route path="/admin/applicant/:jobId/:userId" element={<ApplicantDetail />} />
       </Routes>
       <ToastContainer
         position="top-right"
