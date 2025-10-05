@@ -98,9 +98,7 @@ const Dashboard = () => {
   }
 
   const handleEditProfile = () => {
-    console.log("Edit Profile clicked")
-    setIsProfileDropdownOpen(false)
-    // Add navigation or modal logic here
+    navigate("/profileSettings")
   }
 
   const handleLogout = () => {
