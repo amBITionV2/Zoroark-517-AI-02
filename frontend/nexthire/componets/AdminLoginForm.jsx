@@ -1,92 +1,100 @@
 "use client"
 
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
 import "../src/styles/globals.css"
+import { useNavigate } from "react-router-dom"
+//
 
-export default function AdminLoginForm() {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  })
-  
-  const [errors, setErrors] = useState({})
+
+export default function AdminLoginForm( ) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [apiError, setApiError] = useState("")
   const navigate = useNavigate();
 
+  // Form data state
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    rememberMe: false,
+  })
+
+  // Validation errors state
+  const [errors, setErrors] = useState({})
+
+  // Touched fields state
+  const [touched, setTouched] = useState({})
+
+  // Validate email format
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  // Validate individual field
   const validateField = (name, value) => {
     switch (name) {
       case "email":
         if (value.trim() === "") return "Email is required"
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        return !emailRegex.test(value) ? "Invalid email format" : ""
+        return !validateEmail(value) ? "Invalid email format" : ""
       case "password":
-        return value.trim() === "" ? "Password is required" : ""
+        if (value.trim() === "") return "Password is required"
+        return value.length < 8 ? "Password must be at least 8 characters" : ""
       default:
         return ""
     }
   }
 
+  // Handle input change
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: "" })
+    const { name, value, type, checked } = e.target
+    const newValue = type === "checkbox" ? checked : value
+    setFormData({ ...formData, [name]: newValue })
+
+    // Real-time validation
+    if (touched[name]) {
+      const error = validateField(name, newValue)
+      setErrors({ ...errors, [name]: error })
     }
   }
 
+  // Handle blur
   const handleBlur = (e) => {
     const { name, value } = e.target
+    setTouched({ ...touched, [name]: true })
     const error = validateField(name, value)
     setErrors({ ...errors, [name]: error })
   }
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     // Validate all fields
+    const allFields = ["email", "password"]
     const newErrors = {}
-    Object.keys(formData).forEach((field) => {
+    allFields.forEach((field) => {
       const error = validateField(field, formData[field])
       if (error) newErrors[field] = error
     })
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
+      setTouched(allFields.reduce((acc, field) => ({ ...acc, [field]: true }), {}))
       return
     }
-    
+
     setIsSubmitting(true)
     setApiError("")
-    
+
     try {
-      // Make API call to login admin
-      const response = await fetch("http://localhost:5000/api/admin/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      })
-      
-      const result = await response.json()
-      
-      if (response.ok) {
-        // Store token in localStorage
-        localStorage.setItem("adminToken", result.token)
-        // Redirect to admin dashboard
-        navigate("/admin/dashboard")
-      } else {
-        setApiError(result.message || "Login failed. Please try again.")
-      }
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      // Mock successful login
+      console.log("Login successful:", formData)
+      alert("Login successful! (This is a demo)")
     } catch (error) {
-      setApiError("Network error. Please try again.")
+      setApiError(error.message || "Login failed. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -98,13 +106,28 @@ export default function AdminLoginForm() {
       style={{ background: "linear-gradient(135deg, #0A0E27 0%, #0D1229 50%, #161B33 100%)" }}
     >
       <div className="w-full max-w-md">
+        {/* Form Card */}
         <div
           className="rounded-lg shadow-2xl p-8 border border-[rgba(99,102,241,0.2)]"
           style={{ background: "linear-gradient(135deg, #1E2749 0%, #161B33 100%)" }}
         >
+          {/* Header */}
           <div className="mb-8 text-center">
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+              style={{ background: "linear-gradient(135deg, #22D3EE 0%, #6366F1 100%)" }}
+            >
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+            </div>
             <h1 className="text-3xl font-bold text-[#F8FAFC] mb-2">Admin Login</h1>
-            <p className="text-[#94A3B8]">Sign in to your admin account</p>
+            <p className="text-[#94A3B8]">Welcome back! Please login to your account</p>
           </div>
 
           {apiError && (
@@ -113,61 +136,62 @@ export default function AdminLoginForm() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-[#F8FAFC] mb-2">
-                  Email Address
-                </label>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-[#F8FAFC] mb-2">
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className="w-full px-4 py-3 bg-[#161B33] border border-[rgba(99,102,241,0.2)] rounded-lg text-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#6366F1] focus:ring-2 focus:ring-[rgba(99,102,241,0.15)] transition-all"
+                placeholder="your.email@company.com"
+              />
+              {touched.email && errors.email && <p className="mt-1 text-sm text-red-400">{errors.email}</p>}
+            </div>
+
+            {/* Password */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-[#F8FAFC] mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className="w-full px-4 py-3 bg-[#161B33] border border-[rgba(99,102,241,0.2)] rounded-lg text-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#6366F1] focus:ring-2 focus:ring-[rgba(99,102,241,0.15)] transition-all"
+                placeholder="Enter your password"
+              />
+              {touched.password && errors.password && <p className="mt-1 text-sm text-red-400">{errors.password}</p>}
+            </div>
+
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
+                  type="checkbox"
+                  id="rememberMe"
+                  name="rememberMe"
+                  checked={formData.rememberMe}
                   onChange={handleChange}
-                  onBlur={handleBlur}
-                  className="w-full px-4 py-3 bg-[#161B33] border border-[rgba(99,102,241,0.2)] rounded-lg text-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#6366F1] focus:ring-2 focus:ring-[rgba(99,102,241,0.15)] transition-all"
-                  placeholder="your.email@company.com"
+                  className="h-4 w-4 rounded border-[#6366F1] bg-[#161B33] text-[#6366F1] focus:ring-[#6366F1] focus:ring-offset-[#1E2749]"
                 />
-                {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email}</p>}
-              </div>
-
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-[#F8FAFC] mb-2">
-                  Password
+                <label htmlFor="rememberMe" className="text-sm text-[#F8FAFC]">
+                  Remember me
                 </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className="w-full px-4 py-3 bg-[#161B33] border border-[rgba(99,102,241,0.2)] rounded-lg text-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#6366F1] focus:ring-2 focus:ring-[rgba(99,102,241,0.15)] transition-all"
-                  placeholder="Enter your password"
-                />
-                {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password}</p>}
               </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-[#6366F1] bg-[#161B33] text-[#6366F1] focus:ring-[#6366F1] focus:ring-offset-[#1E2749]"
-                  />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-[#F8FAFC]">
-                    Remember me
-                  </label>
-                </div>
-
-                <div className="text-sm">
-                  <a href="#" className="text-[#22D3EE] hover:text-[#6366F1] transition-colors">
-                    Forgot password?
-                  </a>
-                </div>
-              </div>
+              <a href="#" className="text-sm text-[#22D3EE] hover:text-[#6366F1] transition-colors">
+                Forgot password?
+              </a>
+            </div>
 
             {/* Submit Button */}
             <button
@@ -236,19 +260,21 @@ export default function AdminLoginForm() {
                 <span>GitHub</span>
               </button>
             </div>
-          </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-[#94A3B8]">
-              Don't have an account?{" "}
-              <button
-                onClick={() => navigate("/adminSignup")}
-                className="text-[#22D3EE] hover:text-[#6366F1] font-medium transition-colors"
-              >
-                Sign up
-              </button>
-            </p>
-          </div>
+            {/* Sign Up Link */}
+            <div className="text-center mt-6">
+              <p className="text-sm text-[#94A3B8]">
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => navigate("/adminSignupForm")}
+                  className="text-[#22D3EE] hover:text-[#6366F1] transition-colors font-medium"
+                >
+                  Sign up
+                </button>
+              </p>
+            </div>
+          </form>
         </div>
       </div>
     </div>

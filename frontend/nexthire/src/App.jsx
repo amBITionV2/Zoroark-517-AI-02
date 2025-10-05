@@ -12,6 +12,7 @@ import AIInterviewDashboard from "./aiinterview"; // Import the AI Interview Das
 import Applications from "./applications";
 import Profile from "./profile";
 import AdminSignupForm from "../componets/AdminSignupForm.jsx";
+import AdminLoginForm from "../componets/AdminLoginForm.jsx";
 import Dashboard from "./admin/adminDashboard.jsx";
 import CandidateDetail from "./admin/candidateDetails.jsx";
 import CreateJob from "./admin/createJobs.jsx";
