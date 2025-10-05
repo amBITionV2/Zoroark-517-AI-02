@@ -3,7 +3,7 @@ import os
 import base64
 
 # Set your ElevenLabs API key
-ELEVEN_API_KEY = "sk_86cc981d87f7827a52b82189cb3cb0d21d98e1b2c5f5bb10"
+ELEVEN_API_KEY = "sk_21d6db8c85bcffcef093f5c55501940201640089dcd61e06"
 
 # Choose a voice ID
 VOICE_ID = "UgBBYS2sOqTuMpoF3BR0"  # Example voice (Rachel)
