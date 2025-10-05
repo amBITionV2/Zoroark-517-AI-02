@@ -15,7 +15,20 @@ import {
   FiLogOut,
   FiHome,
 } from "react-icons/fi"
-import "./globals.css"
+import {
+  FaHome,
+  FaBriefcase,
+  FaClipboardList,
+  FaUser,
+  FaBars,
+  FaTimes,
+  FaChevronDown,
+  FaChevronUp,
+  FaArrowRight,
+  FaSearch,
+  FaSignOutAlt,
+} from "react-icons/fa"
+import "./styles/joblistPage.css"
 import accountLogo from "./assets/account-logo.svg"
 import jobLogo from "./assets/job-logo.svg"
 
@@ -56,7 +69,14 @@ export default function Joblist() {
   }, []);
 
   if (loading) {
-    return <div style={{ textAlign: "center", marginTop: "50px" }}>Loading jobs...</div>;
+    return (
+      <div className="app">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p className="loading-text">Loading jobs...</p>
+        </div>
+      </div>
+    );
   }
 
   const toggleBookmark = (jobId) => {
@@ -75,8 +95,18 @@ export default function Joblist() {
     navigate("/jobs/rules", { state: { job } });
   }
 
+  const handleNavigation = (path) => {
+    setIsSidebarOpen(false);
+    navigate(path);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/');
+  };
+
   return (
-    <div className="min-h-screen job-listing-bg">
+    <div className="app">
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -90,70 +120,47 @@ export default function Joblist() {
         className={`
           fixed top-0 left-0 h-full z-40 transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          md:translate-x-0 w-64 sidebar-bg
+          md:translate-x-0 w-64 sidebar
         `}
       >
         <div className="flex flex-col h-full p-6">
-          {/* User Profile */}
-          <div className="mb-8">
-            <div className="flex flex-col items-center gap-3 mb-6">
-              <img src={accountLogo} alt="User" className="w-12 h-12 rounded-full" />
-              <div>
-                <h3 className="font-semibold text-primary">John Doe</h3>
-                <p className="text-sm text-secondary">Job Seeker</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1">
-            <ul className="space-y-2">
-              <li>
-                <a href="#" className="nav-link nav-link-active">
-                  <FiBriefcase size={20} />
-                  <span>Jobs</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" className="nav-link">
-                  <FiHome size={20} />
-                  <span>Dashboard</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" className="nav-link">
-                  <FiBookmark size={20} />
-                  <span>applied Jobs</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" className="nav-link">
-                  <FiUser size={20} />
-                  <span>Profile</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" className="nav-link">
-                  <FiSettings size={20} />
-                  <span>Settings</span>
-                </a>
-              </li>
-            </ul>
-          </nav>
-
-          {/* Logout */}
-          <button 
-            onClick={() => {
-              localStorage.removeItem('token');
-              window.location.href = '/';
-            }}
-            className="nav-link w-full mt-auto"
-          >
-            <FiLogOut size={20} />
-            <span>Logout</span>
-          </button>
-        </div>
-      </aside>
+                          {/* User Profile */}
+                          <div className="mb-8">
+                            <div className="flex flex-col items-center gap-3 mb-6">
+                              <img
+                                src={accountLogo}
+                                alt="User"
+                                className="w-16 h-16 rounded-full"
+                              />
+                              <div className="text-center">
+                                <h3 className="font-semibold text-primary">John Doe</h3>
+                                <p className="text-sm text-secondary">Job Seeker</p>
+                              </div>
+                            </div>
+                          </div>    
+        
+                  <nav className="nav-links">
+                    <a className="nav-link" onClick={() => handleNavigation('/dashboard')}>
+                      <FaHome /> Dashboard
+                    </a>
+                    <a className="nav-link active" onClick={() => handleNavigation('/jobs')}>
+                      <FaBriefcase /> Jobs
+                    </a>
+                    <a className="nav-link " onClick={() => handleNavigation('/applications')}>
+                      <FaClipboardList /> Applications
+                    </a>
+                    <a className="nav-link" onClick={() => handleNavigation('/profile')}>
+                      <FaUser /> Profile
+                    </a>
+                  </nav>
+        
+                  <button 
+                    onClick={handleLogout}
+                  className="logout-btn">
+                    <FaSignOutAlt /> Logout
+                  </button>
+                </div>
+              </aside>
 
       {/* Overlay for mobile */}
       {isSidebarOpen && (
@@ -161,23 +168,24 @@ export default function Joblist() {
       )}
 
       {/* Main Content */}
-      <main className="md:ml-64 p-6 md:p-8">
+      <main className="main-content">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-primary">Find Your Dream Job</h1>
-          <p className="text-lg text-secondary">Browse through {jobs.length} available positions</p>
+        <div className="page-header">
+          <h1 className="page-title">Find Your Dream Job</h1>
+          <p className="page-subtitle">Browse through {jobs.length} available positions</p>
         </div>
 
+
         {/* Job Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="job-grid">
           {jobs.map((job) => (
             <div key={job.jobId} className="job-card">
               {/* Company Logo and Bookmark */}
-              <div className="flex items-start justify-between mb-4">
+              <div className="job-card-header">
                 <img
                   src={jobLogo}
                   alt={`${job.companyName} logo`}
-                  className="w-12 h-12 rounded-lg"
+                  className="company-logo"
                 />
                 <button
                   onClick={() => toggleBookmark(job.jobId)}
@@ -188,11 +196,11 @@ export default function Joblist() {
               </div>
 
               {/* Job Title and Company */}
-              <h3 className="text-xl font-semibold mb-1 text-primary">{job.role}</h3>
-              <p className="text-sm mb-4 text-secondary">{job.companyName}</p>
+              <h3 className="job-title">{job.role}</h3>
+              <p className="company-name">{job.companyName}</p>
 
               {/* Job Details */}
-              <div className="space-y-2 mb-4">
+              <div className="job-details">
                 <div className="job-detail">
                   <FiMapPin size={16} className="detail-icon" />
                   <span>{job.location}</span>
@@ -212,10 +220,10 @@ export default function Joblist() {
               </div>
 
               {/* Description */}
-              <p className="text-sm mb-4 line-clamp-3 text-secondary">{job.jobDescription}</p>
+              <p className="job-description">{job.jobDescription}</p>
 
               {/* Skills */}
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="skills-container">
                 {job.skillsRequired && job.skillsRequired.map((skill, index) => (
                   <span key={index} className="skill-tag">
                     {skill}

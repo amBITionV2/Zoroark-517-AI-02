@@ -13,11 +13,7 @@ function landingpage() {
       navigate("/dashboard");
     }
   }, [navigate]);
-
-  // Function to handle admin login
-  const handleAdminLogin = () => {
-    toast.info("Admin login feature coming soon!");
-  };
+;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-100">
@@ -32,7 +28,7 @@ function landingpage() {
         </p>
         <div className="mt-10 flex gap-6">
           <button 
-            onClick={handleAdminLogin}
+            onClick={() => navigate("/adminLoginForm")}
             className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl shadow-lg hover:scale-105 hover:shadow-pink-500/50 hover:cursor-pointer transition"
           >
             Login as Admin

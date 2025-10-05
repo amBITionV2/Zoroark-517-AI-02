@@ -1,6 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaUserCircle, FaChevronDown, FaUser, FaBriefcase, FaClipboardList } from "react-icons/fa";
+import {
+  FaUserCircle,
+  FaChevronDown,
+  FaUser,
+  FaBriefcase,
+  FaClipboardList,
+  FaSignOutAlt,
+  FaLink,
+  FaEnvelope,
+  FaPhone,
+  FaGraduationCap,
+  FaLightbulb,
+  FaCalendar,
+} from "react-icons/fa";
+import "./styles/UserPage.css";
 
 const UserPage = () => {
   const navigate = useNavigate();
@@ -11,7 +25,7 @@ const UserPage = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      navigate("/login");
+      navigate("/user");
       return;
     }
 
@@ -20,10 +34,17 @@ const UserPage = () => {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
-      .then((data) => setUser(data.user))
+      .then((data) => {
+        if (data.success) {
+          setUser(data.user);
+        } else {
+          throw new Error(data.message || "Failed to fetch profile");
+        }
+      })
       .catch((err) => {
         console.error("Error fetching profile:", err);
-        navigate("/login");
+        localStorage.removeItem("token");
+        navigate("/user");
       });
   }, [navigate]);
 
@@ -33,132 +54,224 @@ const UserPage = () => {
   };
 
   if (!user) {
-    return <p className="text-center mt-10 text-gray-400">Loading profile...</p>;
+    return (
+      <div className="user-loading-container">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 mx-auto mb-4 user-loading-spinner"></div>
+          <p className="text-xl user-loading-text">Loading profile...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 font-sans">
+    <div className="user-page-container">
       {/* Header */}
-      <header className="flex justify-between items-center p-6 border-b border-gray-800 relative bg-gray-800">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
-          NextHire
-        </h1>
+      <header className="user-header">
+        <div className="user-header-content">
+          {/* Left: Welcome Message */}
+          <div className="user-welcome-section">
+            <p className="user-welcome-label">Welcome back,</p>
+            <p className="user-welcome-name">{user.fullName}</p>
+          </div>
 
-        {/* Profile Icon */}
-        <div className="relative">
-          <button
-            className="flex items-center space-x-2 focus:outline-none"
-            onClick={() => setOpenProfile(!openProfile)}
-          >
-            <FaUserCircle size={40} className="text-gray-200 hover:text-gray-400" />
-            <FaChevronDown className={`text-gray-400 transition-transform ${openProfile ? "rotate-180" : ""}`} />
-          </button>
+          {/* Center: Logo */}
+          <h1 className="user-logo">NextHire</h1>
 
-          {/* Profile Dropdown */}
-          {openProfile && (
-            <div className="absolute right-0 mt-2 w-96 bg-gray-800 border border-gray-700 rounded-xl shadow-lg z-50 p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Your Profile</h2>
+          {/* Right: Profile Icon */}
+          <div className="user-profile-wrapper">
+            <button
+              className={`user-profile-btn ${openProfile ? 'active' : ''}`}
+              onClick={() => setOpenProfile(!openProfile)}
+            >
+              <FaUserCircle size={40} className="user-profile-icon" />
+              <FaChevronDown className={`user-profile-chevron ${openProfile ? 'open' : ''}`} />
+            </button>
+
+            {/* Profile Dropdown */}
+            {openProfile && (
+              <div className="user-profile-dropdown">
+                <div className="user-profile-header">
+                  <h2 className="user-profile-title">Your Profile</h2>
+                  <button
+                    onClick={() => setOpenProfile(false)}
+                    className="user-profile-close"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="user-profile-info">
+                  <p className="user-profile-info-item">
+                    <FaUser className="user-profile-info-icon" />
+                    <strong className="user-profile-info-label">Name:</strong> {user.fullName}
+                  </p>
+                  <p className="user-profile-info-item">
+                    <FaEnvelope className="user-profile-info-icon" />
+                    <strong className="user-profile-info-label">Email:</strong> {user.email}
+                  </p>
+                  <p className="user-profile-info-item">
+                    <FaPhone className="user-profile-info-icon" />
+                    <strong className="user-profile-info-label">Mobile:</strong> {user.mobile}
+                  </p>
+                  <p className="user-profile-info-item">
+                    <FaBriefcase className="user-profile-info-icon" />
+                    <strong className="user-profile-info-label">Experience:</strong> {user.experience}
+                  </p>
+                  <p className="user-profile-info-item">
+                    <FaLink className="user-profile-info-icon" />
+                    <strong className="user-profile-info-label">Portfolio:</strong>{" "}
+                    <a 
+                      href={user.portfolio} 
+                      target="_blank"
+                      rel="noreferrer"
+                      className="user-profile-link"
+                    >
+                      View Portfolio
+                    </a>
+                  </p>
+                </div>
+
                 <button
-                  onClick={() => setOpenProfile(false)}
-                  className="text-gray-400 hover:text-gray-200"
+                  onClick={handleLogout}
+                  className="user-logout-btn"
                 >
-                  ✕
+                  <FaSignOutAlt /> Logout
                 </button>
               </div>
-
-              <div className="grid grid-cols-1 gap-3 text-gray-300">
-                <p><strong>Name:</strong> {user.fullName}</p>
-                <p><strong>Email:</strong> {user.email}</p>
-                <p><strong>Mobile:</strong> {user.mobile}</p>
-                <p><strong>Gender:</strong> {user.gender}</p>
-                <p><strong>Qualification:</strong> {user.qualification}</p>
-                <p><strong>Experience:</strong> {user.experience}</p>
-                <p><strong>Skills:</strong> {user.skills?.join(", ")}</p>
-                <p>
-                  <strong>Portfolio:</strong>{" "}
-                  <a href={user.portfolio} target="_blank" className="text-blue-400 hover:underline">
-                    {user.portfolio}
-                  </a>
-                </p>
-                <p><strong>About:</strong> {user.about}</p>
-              </div>
-
-              <button
-                onClick={handleLogout}
-                className="mt-6 w-full py-2 rounded-lg bg-red-600 hover:bg-red-500 transition text-white font-semibold"
-              >
-                Logout
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </header>
 
       {/* Main Dashboard */}
-      <main className="container mx-auto px-6 py-12">
-        {/* Welcome Section */}
-        <section className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-2">Welcome, {user.fullName}</h2>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Manage your profile, view job opportunities, or track your applications.
+      <main className="user-main-content">
+        {/* Info Section */}
+        <section className="user-info-section">
+          <p className="user-info-text">
+            Manage your profile, explore exciting job opportunities, and track your application journey.
           </p>
         </section>
 
         {/* 3 Main Options */}
-        <section className="grid md:grid-cols-3 gap-8 mb-16">
+        <section className="user-dashboard-grid">
           {/* Manage Profile */}
-          <div className="bg-gray-800 rounded-2xl p-6 hover:bg-gray-700 transition shadow-lg cursor-pointer">
-            <div className="flex items-center justify-center mb-4">
-              <FaUser size={32} className="text-purple-400" />
+          <div className="user-dashboard-card" onClick={() => navigate("/profile")}>
+            <div className="user-dashboard-icon-wrapper">
+              <div className="user-dashboard-icon-bg">
+                <FaUser size={32} className="user-dashboard-icon" />
+              </div>
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-center">Manage Profile</h3>
-            <p className="text-gray-400 text-center">Update personal information, resume, and portfolio</p>
+            <h3 className="user-dashboard-card-title">Manage Profile</h3>
+            <p className="user-dashboard-card-text">
+              Update your personal information, resume, and portfolio
+            </p>
           </div>
 
           {/* View Jobs */}
-          <div className="bg-gray-800 rounded-2xl p-6 hover:bg-gray-700 transition shadow-lg cursor-pointer"
-            onClick={() => navigate("/jobs")}
-          >
-            <div className="flex items-center justify-center mb-4">
-              <FaBriefcase size={32} className="text-blue-400" />
+          <div className="user-dashboard-card" onClick={() => navigate("/jobs")}>
+            <div className="user-dashboard-icon-wrapper">
+              <div className="user-dashboard-icon-bg cyan">
+                <FaBriefcase size={32} className="user-dashboard-icon" />
+              </div>
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-center">View Jobs</h3>
-            <p className="text-gray-400 text-center">Browse job opportunities matching your skills</p>
+            <h3 className="user-dashboard-card-title">View Jobs</h3>
+            <p className="user-dashboard-card-text">
+              Browse exciting job opportunities matching your skills
+            </p>
           </div>
 
           {/* Track Applications */}
-          <div className="bg-gray-800 rounded-2xl p-6 hover:bg-gray-700 transition shadow-lg cursor-pointer">
-            <div className="flex items-center justify-center mb-4">
-              <FaClipboardList size={32} className="text-green-400" />
+          <div className="user-dashboard-card" onClick={() => navigate("/applications")}>
+            <div className="user-dashboard-icon-wrapper">
+              <div className="user-dashboard-icon-bg cyan">
+                <FaClipboardList size={32} className="user-dashboard-icon" />
+              </div>
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-center">Track Applications</h3>
-            <p className="text-gray-400 text-center">Check the status of your job applications</p>
+            <h3 className="user-dashboard-card-title">Track Applications</h3>
+            <p className="user-dashboard-card-text">
+              Monitor the status of all your job applications
+            </p>
           </div>
         </section>
 
         {/* About You Section */}
-        <section className="mt-8 bg-gray-800 rounded-2xl p-8 shadow-lg">
-          <h3 className="text-2xl font-bold mb-4">About You</h3>
-          <p className="text-gray-300 mb-2">{user.about}</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300 mt-4">
-            <p><strong>Email:</strong> {user.email}</p>
-            <p><strong>Mobile:</strong> {user.mobile}</p>
-            <p><strong>Gender:</strong> {user.gender}</p>
-            <p><strong>Qualification:</strong> {user.qualification}</p>
-            <p><strong>Portfolio:</strong> <a href={user.portfolio} target="_blank" className="text-blue-400 hover:underline">{user.portfolio}</a></p>
-            <p><strong>Skills:</strong> {user.skills?.join(", ")}</p>
-          </div>
-          
-          {/* Display resume text if available */}
-          {user.resumeText && (
-            <div className="mt-6">
-              <h4 className="text-xl font-bold mb-2">Extracted Resume Text</h4>
-              <div className="bg-gray-900 p-4 rounded-lg max-h-60 overflow-y-auto">
-                <pre className="text-gray-300 whitespace-pre-wrap">{user.resumeText}</pre>
+        <section className="user-about-section">
+          <h3 className="user-about-title">About You</h3>
+          <p className="user-about-bio">
+            {user.about || "No bio added yet. Share something about yourself!"}
+          </p>
+          <div className="user-about-grid">
+            <div className="user-about-item">
+              <FaEnvelope size={20} className="user-about-icon" />
+              <div>
+                <p className="user-about-label">Email</p>
+                <p className="user-about-value">{user.email}</p>
               </div>
             </div>
-          )}
+            <div className="user-about-item">
+              <FaPhone size={20} className="user-about-icon" />
+              <div>
+                <p className="user-about-label">Mobile</p>
+                <p className="user-about-value">{user.mobile}</p>
+              </div>
+            </div>
+            <div className="user-about-item">
+              <FaUser size={20} className="user-about-icon" />
+              <div>
+                <p className="user-about-label">Gender</p>
+                <p className="user-about-value">{user.gender}</p>
+              </div>
+            </div>
+            <div className="user-about-item">
+              <FaCalendar size={20} className="user-about-icon" />
+              <div>
+                <p className="user-about-label">Date of Birth</p>
+                <p className="user-about-value">{user.dob ? new Date(user.dob).toLocaleDateString() : "Not provided"}</p>
+              </div>
+            </div>
+            <div className="user-about-item">
+              <FaGraduationCap size={20} className="user-about-icon" />
+              <div>
+                <p className="user-about-label">Qualification</p>
+                <p className="user-about-value">{user.qualification}</p>
+              </div>
+            </div>
+            <div className="user-about-item">
+              <FaBriefcase size={20} className="user-about-icon" />
+              <div>
+                <p className="user-about-label">Experience</p>
+                <p className="user-about-value">{user.experience}</p>
+              </div>
+            </div>
+            <div className="user-about-item">
+              <FaLink size={20} className="user-about-icon" />
+              <div>
+                <p className="user-about-label">Portfolio</p>
+                <a 
+                  href={user.portfolio} 
+                  target="_blank"
+                  rel="noreferrer"
+                  className="user-profile-link user-about-value"
+                >
+                  {user.portfolio}
+                </a>
+              </div>
+            </div>
+            <div className="user-about-item">
+              <FaLightbulb size={20} className="user-about-icon" />
+              <div>
+                <p className="user-about-label">Skills</p>
+                <div className="user-about-skills">
+                  {user.skills?.map((skill, index) => (
+                    <span key={index} className="skill-tag">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
       </main>
     </div>

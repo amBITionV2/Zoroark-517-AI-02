@@ -22,17 +22,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global state to track interview progress
 interview_state = {
     "question_number": 0,
     "is_active": False
 }
 
-# Request models
 class StartRequest(BaseModel):
     resume: str
 
-# Root endpoint
 @app.get("/")
 def root():
     return {
@@ -41,22 +38,17 @@ def root():
         "endpoints": ["/ai/start", "/ai/listen"]
     }
 
-# Start interview endpoint
 @app.post("/ai/start")
 def start_interview(req: StartRequest):
     """Initialize interview with resume and ask first question"""
     try:
-        # Reset interview state
         interview_state['question_number'] = 1
         interview_state['is_active'] = True
         
-        # Set the resume context in interview_flow
         set_resume_context(req.resume)
         
-        # Get first question from AI
         question = get_ai_response("start_interview", interview_state['question_number'])
         
-        # Generate speech audio
         audio_file = speak_text(question)
         audio_base64 = get_audio_base64(audio_file) if audio_file else None
         
@@ -71,7 +63,6 @@ def start_interview(req: StartRequest):
         print(f"Error in start_interview: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to start interview: {str(e)}")
 
-# Listen and respond endpoint
 @app.post("/ai/listen")
 def listen_and_respond():
     """Listen to candidate answer via STT and generate AI response"""
@@ -79,7 +70,6 @@ def listen_and_respond():
         if not interview_state['is_active']:
             raise HTTPException(status_code=400, detail="Interview not started. Call /ai/start first.")
         
-        # Step 1: Record and transcribe candidate's answer via STT
         print("Listening for candidate answer...")
         candidate_answer = listen_and_transcribe()
         print(f"Transcribed answer: {candidate_answer}")

@@ -40,12 +40,14 @@ def record_audio():
     try:
         with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype=np.int16) as stream:
             while True:
+                # Check stop signal FIRST before reading
                 with recording_state["lock"]:
                     if recording_state["should_stop"]:
                         print("🛑 Recording stopped by user")
                         break
                 
-                chunk, _ = stream.read(int(0.5 * SAMPLE_RATE))
+                # Use shorter chunks for faster response
+                chunk, _ = stream.read(int(0.2 * SAMPLE_RATE))  # Changed from 0.5 to 0.2
                 chunk = np.squeeze(chunk)
                 
                 with recording_state["lock"]:
