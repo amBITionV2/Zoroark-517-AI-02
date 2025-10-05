@@ -63,7 +63,6 @@ improving skills in React.js, Next.js, Node.js, Express, and MongoDB."""
 
     final_json = calculate_total_score(resume_text, target_domain, mcq_marks, coding_marks)
 
-    # Save and print
     with open("final_score.json", "w") as f:
         json.dump(final_json, f, indent=4)
 

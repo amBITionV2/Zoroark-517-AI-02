@@ -6,7 +6,8 @@ import { databaseConnection } from "./database/db.js";
 import adminRoutes from "./routes/admin.js";
 import resumeRoutes from "./routes/resumeroute.js";
 import mcqRoutes from "./routes/mcqRoutes.js";
-import interviewRoutes from "./routes/interviewRoutes.js"; // Add interview routes
+import interviewRoutes from "./routes/interviewRoutes.js";
+import transcriptRoutes from "./routes/transcriptRoutes.js"; // ADD THIS LINE
 
 dotenv.config();
 
@@ -14,7 +15,7 @@ const app = express();
 
 // Add CORS middleware - allow all origins for development
 app.use(cors({
-  origin: true, // This will allow all origins
+  origin: true,
   credentials: true
 }));
 
@@ -23,7 +24,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/resume", resumeRoutes);
 app.use("/api/mcq", mcqRoutes);
-app.use("/api/interview", interviewRoutes); // Add interview routes
+app.use("/api/interview", interviewRoutes);
+app.use("/api/transcript", transcriptRoutes); // ADD THIS LINE
 
 app.get("/", (req, res) => {
   res.send("Hello World from Node.js with import!");
@@ -31,6 +33,6 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, async () => {
-  await databaseConnection(); // connect DB before serving requests
+  await databaseConnection();
   console.log(`🚀 Server running on port ${PORT}`);
 });

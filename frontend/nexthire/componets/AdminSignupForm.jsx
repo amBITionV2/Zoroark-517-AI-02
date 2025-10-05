@@ -20,7 +20,7 @@ export default function AdminSignupForm() {
     companyWebsite: "",
     companyLocation: "",
     companyDescription: "",
-    position: "",
+    position: "HR Manager",
     department: "",
     contactNumber: "",
     profileImage: null,
@@ -226,7 +226,7 @@ export default function AdminSignupForm() {
       companyWebsite: "",
       companyLocation: "",
       companyDescription: "",
-      position: "",
+      position: "HR Manager",
       department: "",
       contactNumber: "",
       profileImage: null,
@@ -274,16 +274,44 @@ export default function AdminSignupForm() {
     setApiError("")
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Prepare form data for submission
+      const submitData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        companyName: formData.companyName,
+        companyWebsite: formData.companyWebsite,
+        companyLocation: formData.companyLocation,
+        companyDescription: formData.companyDescription,
+        position: formData.position,
+        department: formData.department,
+        contactNumber: formData.contactNumber,
+        profileImage: formData.profileImageUrl,
+        linkedinProfile: formData.linkedinProfile,
+      };
 
-      // Success
-      setShowSuccess(true)
-      setTimeout(() => {
-        onNavigateToLogin()
-      }, 3000)
+      // Make API call to register admin
+      const response = await fetch("http://localhost:5000/api/admin/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submitData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Success
+        setShowSuccess(true)
+        setTimeout(() => {
+          navigate("/adminLoginForm")
+        }, 3000)
+      } else {
+        setApiError(result.message || "Registration failed. Please try again.")
+      }
     } catch (error) {
-      setApiError(error.message || "Registration failed. Please try again.")
+      setApiError(error.message || "Network error. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -496,16 +524,20 @@ export default function AdminSignupForm() {
               <label htmlFor="position" className="block text-sm font-medium text-[#F8FAFC] mb-2">
                 Position/Job Title *
               </label>
-              <input
-                type="text"
+              <select
                 id="position"
                 name="position"
                 value={formData.position}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 className="w-full px-4 py-3 bg-[#161B33] border border-[rgba(99,102,241,0.2)] rounded-lg text-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#6366F1] focus:ring-2 focus:ring-[rgba(99,102,241,0.15)] transition-all"
-                placeholder="e.g., Senior Manager"
-              />
+              >
+                <option value="HR Manager">HR Manager</option>
+                <option value="Recruiter">Recruiter</option>
+                <option value="Admin">Admin</option>
+                <option value="Talent Acquisition">Talent Acquisition</option>
+                <option value="Other">Other</option>
+              </select>
               {touched.position && errors.position && <p className="mt-1 text-sm text-red-400">{errors.position}</p>}
             </div>
 
@@ -784,7 +816,7 @@ export default function AdminSignupForm() {
               </button>
               <button
                 type="button"
-                onClick={ () => navigate ('/adminLoginForm') }
+                onClick={() => navigate('/adminLoginForm')}
                 className="text-[#94A3B8] hover:text-[#22D3EE] transition-colors"
               >
                 Back to Login

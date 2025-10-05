@@ -11,7 +11,6 @@ import MCQQuiz from "./mcqquiz.jsx";
 import AIInterviewDashboard from "./aiinterview"; // Import the AI Interview Dashboard
 import Applications from "./applications";
 import Profile from "./profile";
-import AdminLoginForm from "../componets/AdminLoginForm";
 import AdminSignupForm from "../componets/AdminSignupForm.jsx";
 import Dashboard from "./admin/adminDashboard.jsx";
 import CandidateDetail from "./admin/candidateDetails.jsx";
@@ -24,6 +23,8 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/user" element={<UserAuth />} />
+        <Route path="/adminSignup" element={<AdminSignupForm />} />
+        <Route path="/adminLoginForm" element={<AdminLoginForm />} />
         <Route path="/dashboard" element={<UserPage />} />
         <Route path="/jobs" element={<Joblist />} />
         <Route path="/jobs/rules" element={<JobApplicationRules />} />
