@@ -302,10 +302,12 @@ export default function AdminSignupForm() {
       const result = await response.json();
 
       if (response.ok) {
+        // Store token in localStorage
+        localStorage.setItem("adminToken", result.token)
         // Success
         setShowSuccess(true)
         setTimeout(() => {
-          navigate("/adminLoginForm")
+          navigate("/adminDashboard")
         }, 3000)
       } else {
         setApiError(result.message || "Registration failed. Please try again.")
@@ -842,7 +844,7 @@ export default function AdminSignupForm() {
             </div>
             <h3 className="text-2xl font-bold text-[#F8FAFC] mb-2">Registration Successful!</h3>
             <p className="text-[#94A3B8] mb-4">
-              Your admin account has been created successfully. Redirecting to login...
+              Your admin account has been created successfully. Redirecting to dashboard...
             </p>
           </div>
         </div>

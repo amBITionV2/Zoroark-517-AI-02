@@ -126,6 +126,9 @@ export const postJob = async (req, res) => {
       skillsRequired,
       jobType,
       applicationDeadline,
+      hackerRankLink,
+      mcqDifficulty,
+      mcqQuestions,
     } = req.body;
 
     const admin = await Admin.findById(adminId);
@@ -140,6 +143,9 @@ export const postJob = async (req, res) => {
       skillsRequired,
       jobType,
       applicationDeadline,
+      hackerRankLink,
+      mcqDifficulty,
+      mcqQuestions: parseInt(mcqQuestions) || 0, // Ensure it's a number
     };
 
     admin.jobsPosted.push(newJob);
@@ -150,10 +156,33 @@ export const postJob = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+// Get all jobs posted by the admin
+export const getAdminJobs = async (req, res) => {
+  try {
+    const adminId = req.admin._id; // use admin from token
+    
+    const admin = await Admin.findById(adminId).select("jobsPosted companyName");
+    if (!admin) return res.status(404).json({ message: "Admin not found" });
+
+    res.status(200).json({
+      success: true,
+      companyName: admin.companyName,
+      jobs: admin.jobsPosted,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
 // Admin gets all applicants for a specific job
 export const getApplicantsForJob = async (req, res) => {
   try {
-    const { adminId, jobId } = req.params; // Admin ID and Job ID
+    const adminId = req.admin._id; // Get admin ID from token
+    const { jobId } = req.params; // Job ID from URL params
+
+    // Find admin
     const admin = await Admin.findById(adminId);
     if (!admin) return res.status(404).json({ message: "Admin not found" });
 
@@ -161,10 +190,12 @@ export const getApplicantsForJob = async (req, res) => {
     const job = admin.jobsPosted.id(jobId);
     if (!job) return res.status(404).json({ message: "Job not found" });
 
-    // Get all users who applied
-    const applicants = await User.find({ _id: { $in: admin.appliedUsers } }).select(
-      "fullName email mobile skills experience"
-    );
+    // Get all users who applied for this specific job
+    // We need to find users who have this job in their appliedJobs array
+    const applicants = await User.find({ 
+      "appliedJobs.jobId": jobId,
+      "appliedJobs.adminId": adminId
+    }).select("fullName email mobile skills experience qualification about appliedJobs createdAt location education interviewRounds notes resumeText coverLetter portfolio interviewTranscript");
 
     res.status(200).json({
       success: true,
@@ -181,10 +212,10 @@ export const getApplicantsForJob = async (req, res) => {
   }
 };
 
-
 export const getApplicantDetails = async (req, res) => {
   try {
-    const { adminId, jobId, userId } = req.params;
+    const adminId = req.admin._id; // Get admin ID from token
+    const { jobId, userId } = req.params;
 
     // Check admin exists
     const admin = await Admin.findById(adminId);
@@ -194,14 +225,14 @@ export const getApplicantDetails = async (req, res) => {
     const job = admin.jobsPosted.id(jobId);
     if (!job) return res.status(404).json({ message: "Job not found" });
 
-    // Check user applied
-    if (!admin.appliedUsers.includes(userId)) {
-      return res.status(400).json({ message: "User did not apply for this job" });
-    }
+    // Check user applied for this specific job
+    const user = await User.findOne({ 
+      _id: userId,
+      "appliedJobs.jobId": jobId,
+      "appliedJobs.adminId": adminId
+    }).select("-newPassword -confirmPassword");
 
-    // Fetch full user details
-    const user = await User.findById(userId).select("-newPassword -confirmPassword");
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "User not found or did not apply for this job" });
 
     res.status(200).json({ success: true, user });
   } catch (error) {

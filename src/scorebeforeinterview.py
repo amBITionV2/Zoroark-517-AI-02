@@ -1,5 +1,18 @@
 import json
 from rag import evaluate_resume_for_domain
+import requests
+
+url = "http://localhost:5000/api/admin/user/:userId/resume-text"
+
+response = requests.get(url)
+
+if response.status_code == 200:
+    # Assuming the API returns plain text
+    resume_text = response.text
+    print("Resume fetched successfully!")
+else:
+    print(f"Failed to fetch resume. Status code: {response.status_code}")
+
 
 def calculate_total_score(resume_text: str, target_domain: str, mcq_marks: float, coding_marks: float) -> dict:
     """
@@ -20,42 +33,7 @@ def calculate_total_score(resume_text: str, target_domain: str, mcq_marks: float
     return updated_json
 
 if __name__ == "__main__":
-    resume_text = """Neeraj Paramkar
-H +91-8431036155 | # neerajparamkar@gmail.com | ï Linkedin | § Github |  Portfolio
-Education
-KLE Independent PU College Belagavi, India
-Class 12th (2022 - 2024) Percentage: 95.66%
-Dayananda Sagar College of Engineering Bangalore, India
-Bachelor of Engineering in Computer Science (2024 - 2028) CGPA: 8.8/10
-Skills
-Languages C, C++, Python, JavaScript, TypeScript, HTML, CSS
-Databases MongoDB
-Frameworks & Libraries React, Next.js, Node.js, Express.js, EJS, Tailwind CSS, GSAP, Vite
-Developer Tools Git, GitHub, Postman, Vercel
-Projects
-QuickTask Next.js | Node.js | Express.js | MongoDB GitHub August 2025 - September 2025
-• Skill Based Task Assignment Platform
-• Developed a full-stack web application for posting and assigning skill-based tasks.
-• Implemented automatic skill-matching logic to assign tasks to individuals with relevant skills.
-• Integrated secure authentication and email notifications for task assignments.
-• Designed a task status tracking system (To-Do, In Progress, Completed ).
-AI Code Reviewer Next.js | Express | MongoDB | OpenAI APIs GitHub July 2025 - August 2025
-• Developed an AI-driven platform that reviews code and provides intelligent feedback.
-• Added features for bug detection, improvements, and time/space complexity analysis.
-• Implemented secure authentication and project history tracking for users.
-• Supported structured review history to help developers monitor progress.
-Authenticator React | Node.js/Express | Nodemailer | MongoDB GitHub May 2025 - June 2025
-• Built a full-featured authentication system.
-• Supported registration, login, OTP-based email verification, and password reset.
-• Integrated secure OTP delivery.
-• Designed as a plug-and-play authentication solution for web apps (e.g., e-commerce, blogs, task
-managers).
-Key Achievements
-• Solved 250+ problems on LeetCode and achieved a LeetCode Rating of 1513.
-• Earned 100 Days badges (x2) and 50 Days badge (x2) on LeetCode, demonstrating consistent
-problem-solving and coding practice.
-• Contributing as a Tech Team Member at ByteXync, collaborating on real-world projects and
-improving skills in React.js, Next.js, Node.js, Express, and MongoDB."""
+    resume_text = response.json()["resume_text"]
     
     target_domain = "Full Stack Developer"
     mcq_marks = 20

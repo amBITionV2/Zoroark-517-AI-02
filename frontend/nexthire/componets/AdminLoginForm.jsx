@@ -81,7 +81,7 @@ export default function AdminLoginForm() {
         // Store token in localStorage
         localStorage.setItem("adminToken", result.token)
         // Redirect to admin dashboard
-        navigate("/admin/dashboard")
+        navigate("/adminDashboard")
       } else {
         setApiError(result.message || "Login failed. Please try again.")
       }
@@ -185,7 +185,7 @@ export default function AdminLoginForm() {
                   (e.currentTarget.style.background = "linear-gradient(135deg, #22D3EE 0%, #6366F1 100%)")
                 }
               >
-                {isSubmitting ? "Signing In..." : "Login In"}
+                {isSubmitting ? "Signing In..." : "Sign In"}
               </button>
             </div>
           </form>

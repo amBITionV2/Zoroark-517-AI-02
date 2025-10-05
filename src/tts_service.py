@@ -1,12 +1,12 @@
 import requests
 import os
 import base64
+from dotenv import load_dotenv
+load_dotenv()
 
-# Set your ElevenLabs API key
-ELEVEN_API_KEY = "sk_21d6db8c85bcffcef093f5c55501940201640089dcd61e06"
+ELEVEN_API_KEY = os.environ["API_ELEVEN"]
 
-# Choose a voice ID
-VOICE_ID = "UgBBYS2sOqTuMpoF3BR0"  # Example voice (Rachel)
+VOICE_ID = "UgBBYS2sOqTuMpoF3BR0"
 
 def speak_text(text: str):
     """Convert text to speech using ElevenLabs API and return audio data."""

@@ -14,6 +14,10 @@ const appliedJobSchema = new mongoose.Schema({
   role: { type: String },
   companyName: { type: String },
   appliedAt: { type: Date, default: Date.now },
+  status: { type: String, default: "Applied" }, // Applied, Interview Scheduled, Under Review, Offer Extended, Rejected
+  interviewDate: { type: Date },
+  score: { type: Number, default: 0 },
+  fitScore: { type: String, default: "---" },
 });
 
 const userSchema = new mongoose.Schema({
@@ -33,10 +37,20 @@ const userSchema = new mongoose.Schema({
     size: Number,
   },
   resumeText: { type: String },
+  coverLetter: { type: String },
   about: { type: String },
   newPassword: { type: String },
   confirmPassword: { type: String },
   createdAt: { type: Date, default: Date.now },
+  location: { type: String },
+  education: { type: String },
+  interviewRounds: [{
+    round: { type: String },
+    status: { type: String },
+    score: { type: Number },
+    date: { type: Date }
+  }],
+  notes: { type: String },
 
   // 🧩 Track applied jobs
   appliedJobs: [appliedJobSchema],
